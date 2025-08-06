@@ -168,7 +168,7 @@ export default function Bilder() {
         <div className="w-full max-w-none">
           {/* Flip Gallery */}
           <div className="flex flex-col items-center">
-            <div className="relative bg-white/10 border border-white/25 p-2 rounded-lg w-full max-w-6xl mx-auto">
+            <div className="relative bg-white/5 border border-white/25 p-2 rounded-lg w-full max-w-6xl mx-auto">
               <div
                 id="flip-gallery"
                 ref={containerRef}

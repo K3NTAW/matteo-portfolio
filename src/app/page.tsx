@@ -103,7 +103,7 @@ export default function Home() {
       {/* Rotating Skills Banner */}
       <section className="py-24 bg-gray-900/30 overflow-hidden">
         <div className="relative">
-          {/* Single row of skills */}
+          {/* First row of skills */}
           <div className="flex animate-scroll-left">
             <div className="flex items-center space-x-16 whitespace-nowrap">
               <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">PREMIER PRO</span>
@@ -121,6 +121,28 @@ export default function Home() {
               <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">ILLUSTRATOR</span>
               <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
               <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">PHOTOSHOP</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+            </div>
+          </div>
+
+          {/* Second row of skills (reverse direction) */}
+          <div className="flex animate-scroll-right mt-8">
+            <div className="flex items-center space-x-16 whitespace-nowrap">
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">PHOTOSHOP</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">ILLUSTRATOR</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">AFTEREFFECTS</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">PREMIER PRO</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">PHOTOSHOP</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">ILLUSTRATOR</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">AFTEREFFECTS</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">PREMIER PRO</span>
               <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
             </div>
           </div>

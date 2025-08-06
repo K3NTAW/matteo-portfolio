@@ -97,11 +97,7 @@ export default function Contact() {
     hidden: { opacity: 0, y: 60 },
     visible: { 
       opacity: 1, 
-      y: 0,
-      transition: { 
-        duration: 0.8, 
-        ease: [0.23, 0.86, 0.39, 0.96] 
-      }
+      y: 0
     }
   };
 
@@ -118,25 +114,9 @@ export default function Contact() {
 
   return (
     <div className="min-h-screen bg-black text-white font-sans">
-      <section className="relative py-32 bg-gradient-to-br from-black via-indigo-950/20 to-black text-white overflow-hidden">
+      <section className="relative py-32 text-white overflow-hidden">
         {/* Enhanced Background Effects */}
         <div className="absolute inset-0">
-          {/* Animated gradient mesh */}
-          <motion.div 
-            className="absolute inset-0 bg-gradient-to-br from-indigo-500/[0.08] via-purple-500/[0.05] to-rose-500/[0.08]"
-            animate={{
-              backgroundPosition: ['0% 0%', '100% 100%', '0% 0%'],
-            }}
-            transition={{
-              duration: 35,
-              repeat: Infinity,
-              ease: "linear"
-            }}
-            style={{
-              backgroundSize: '400% 400%'
-            }}
-          />
-          
           {/* Moving orbs */}
           <motion.div
             className="absolute top-1/3 left-1/5 w-96 h-96 bg-indigo-400/10 rounded-full blur-3xl"
