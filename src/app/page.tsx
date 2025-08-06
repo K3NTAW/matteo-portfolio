@@ -2,102 +2,130 @@ import Image from "next/image";
 
 export default function Home() {
   return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
-
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+    <div className="min-h-screen bg-black text-white font-sans">
+      {/* Hero Section */}
+      <section className="relative min-h-screen flex flex-col justify-center items-center px-8">
+        {/* Main Content */}
+        <div className="text-center max-w-4xl mx-auto">
+          {/* Name - Large and bold */}
+          <h1 className="text-9xl md:text-[10rem] lg:text-[14rem] font-bold tracking-tight leading-none mb-4 text-[#E0F21E]">
+            Matteo
+          </h1>
+          
+          {/* Surname */}
+          <h2 className="text-9xl md:text-[10rem] lg:text-[14rem] font-bold tracking-tight leading-none mb-4 text-[#E0F21E]">
+            Pianta
+          </h2>
+          
+          {/* Title */}
+          <p className="text-xl md:text-2xl font-medium text-gray-300 mb-8">
+            Mediamatiker 2. Lehrjar
+          </p>
+          
+          {/* Description */}
+          <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
+            Ciao, ich bin Matteo. Momentan im 2. Lehrjahr als Mediamatiker. 
+            Erfahre mehr über mich auf dieser Seite!
+          </p>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+        
+        {/* Scroll Indicator */}
+        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2">
+          <div className="flex flex-col items-center space-y-2">
+            <span className="text-sm font-medium text-gray-400 tracking-wider">
+              SCROLL
+            </span>
+            <div className="w-px h-8 bg-yellow-400 animate-pulse"></div>
+          </div>
+        </div>
+      </section>
+
+      {/* Experience Section */}
+      <section className="py-32 px-8">
+        <div className="max-w-6xl mx-auto">
+          {/* Section Title */}
+          <div className="text-center mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-[#E0F21E] mb-4">
+              EXPERIENCE
+            </h2>
+            <div className="w-32 h-px bg-gray-600 mx-auto"></div>
+          </div>
+
+          {/* Experience Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            {/* Project 1 */}
+            <div className="bg-gray-900/50 border border-gray-700 rounded-xl p-8 hover:bg-gray-900/70 transition-colors">
+              <h3 className="text-2xl font-bold text-white mb-2">
+                Junior Center B2B Callcenter, Olten
+              </h3>
+              <p className="text-gray-400 mb-4">1. Projekt</p>
+              <p className="text-gray-300 leading-relaxed">
+                Dies war mein erstes Projekt. Ich lernte, wie man mit Kunden umgeht und konnte meine kommunikativen Skills verbessern.
+              </p>
+            </div>
+
+            {/* Project 2 */}
+            <div className="bg-gray-900/50 border border-gray-700 rounded-xl p-8 hover:bg-gray-900/70 transition-colors">
+              <h3 className="text-2xl font-bold text-white mb-2">
+                Junior Center B2B Mediamatik, Zürich/Bern
+              </h3>
+              <p className="text-gray-400 mb-4">2. Projekt</p>
+              <p className="text-gray-300 leading-relaxed">
+                In diesem Projekt lernte ich viel zum Thema Fotografie. Eine meiner Hauptaufgaben war es, Fotoshootings zu machen.
+              </p>
+            </div>
+
+            {/* Project 3 */}
+            <div className="bg-gray-900/50 border border-gray-700 rounded-xl p-8 hover:bg-gray-900/70 transition-colors">
+              <h3 className="text-2xl font-bold text-white mb-2">
+                MMO Multimediateam, Zürich
+              </h3>
+              <p className="text-gray-400 mb-4">3. Projekt</p>
+              <p className="text-gray-300 leading-relaxed">
+                Von dem Videoschneiden bis zum Illustrieren konnte ich in allem Übung sammeln bei MMO.
+              </p>
+            </div>
+
+            {/* Project 4 */}
+            <div className="bg-gray-900/50 border border-gray-700 rounded-xl p-8 hover:bg-gray-900/70 transition-colors">
+              <h3 className="text-2xl font-bold text-white mb-2">
+                Motion, Zürich
+              </h3>
+              <p className="text-gray-400 mb-4">4. Projekt</p>
+              <p className="text-gray-300 leading-relaxed">
+                Dies war mein erstes Projekt. Ich lernte, wie man mit Kunden umgeht und konnte meine kommunikativen Skills verbessern.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Rotating Skills Banner */}
+      <section className="py-24 bg-gray-900/30 overflow-hidden">
+        <div className="relative">
+          {/* Single row of skills */}
+          <div className="flex animate-scroll-left">
+            <div className="flex items-center space-x-16 whitespace-nowrap">
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">PREMIER PRO</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">AFTEREFFECTS</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">ILLUSTRATOR</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">PHOTOSHOP</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">PREMIER PRO</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">AFTEREFFECTS</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">ILLUSTRATOR</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+              <span className="text-6xl md:text-7xl lg:text-8xl font-bold text-[#E0F21E]">PHOTOSHOP</span>
+              <div className="w-6 h-6 bg-gray-600 rotate-45"></div>
+            </div>
+          </div>
+        </div>
+      </section>
     </div>
   );
 }
