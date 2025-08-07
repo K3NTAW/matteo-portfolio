@@ -5,8 +5,12 @@ import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { getMedia } from '@/lib/database';
 import { Media } from '@/types/database';
 
-const FLIP_SPEED = 750;
-const flipTiming = { duration: FLIP_SPEED, iterations: 1 };
+const FLIP_SPEED = 600;
+const flipTiming = { 
+  duration: FLIP_SPEED, 
+  iterations: 1,
+  easing: 'cubic-bezier(0.4, 0.0, 0.2, 1)'
+};
 
 // flip down
 const flipAnimationTop = [
@@ -38,6 +42,7 @@ export default function Bilder() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [mediaItems, setMediaItems] = useState<Media[]>([]);
   const [loading, setLoading] = useState(true);
+  const [imagesLoaded, setImagesLoaded] = useState(false);
 
   // Fetch media from database
   useEffect(() => {
@@ -57,13 +62,68 @@ export default function Bilder() {
     fetchMedia();
   }, []);
 
-  // initialise first image once
+  // Fallback images if no media from database
+  const fallbackImages = [
+    { 
+      title: 'Junior Center B2B Callcenter', 
+      url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&h=1000&fit=crop',
+      description: '1. Projekt - Customer Service'
+    },
+    { 
+      title: 'MMO Multimediateam', 
+      url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=1000&fit=crop',
+      description: '3. Projekt - Video & Illustration'
+    },
+    { 
+      title: 'Junior Center B2B Mediamatik', 
+      url: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&h=1000&fit=crop',
+      description: '2. Projekt - Photography'
+    },
+    { 
+      title: 'Motion', 
+      url: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=600&h=1000&fit=crop',
+      description: '4. Projekt - Motion Design'
+    },
+    { 
+      title: 'Portfolio Project', 
+      url: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&h=1000&fit=crop',
+      description: 'Personal Portfolio Website'
+    }
+  ];
+
+  // Use database media if available, otherwise use fallback
+  const displayImages = mediaItems.length > 0 ? mediaItems : fallbackImages;
+
+  // Preload all images and initialize
   useEffect(() => {
-    if (!containerRef.current || mediaItems.length === 0) return;
-    uniteRef.current = Array.from(containerRef.current.querySelectorAll('.unite'));
-    defineFirstImg();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [mediaItems]);
+    if (displayImages.length === 0) return;
+    
+    const preloadImages = async () => {
+      const imagePromises = displayImages.map((image) => {
+        return new Promise((resolve, reject) => {
+          const img = new Image();
+          img.onload = () => resolve(image);
+          img.onerror = () => reject(image);
+          img.src = 'file_url' in image ? image.file_url : image.url;
+        });
+      });
+
+      try {
+        await Promise.all(imagePromises);
+        setImagesLoaded(true);
+        
+        if (containerRef.current) {
+          uniteRef.current = Array.from(containerRef.current.querySelectorAll('.unite'));
+          defineFirstImg();
+        }
+      } catch (error) {
+        console.error('Error preloading images:', error);
+        setImagesLoaded(true); // Continue anyway
+      }
+    };
+
+    preloadImages();
+  }, [displayImages]);
 
   const defineFirstImg = () => {
     uniteRef.current.forEach(setActiveImage);
@@ -98,24 +158,31 @@ export default function Bilder() {
       ? flipAnimationBottomReverse
       : flipAnimationBottom;
 
-    // animate top half
-    const topEl = uniteRef.current[0];
-    if (topEl) {
-      topEl.animate(topAnim, flipTiming);
-    }
+    // Animate the overlay elements
+    gallery.querySelector('.overlay-top')?.animate(topAnim, flipTiming);
+    gallery.querySelector('.overlay-bottom')?.animate(bottomAnim, flipTiming);
 
-    // animate bottom half
-    const bottomEl = uniteRef.current[1];
-    if (bottomEl) {
-      bottomEl.animate(bottomAnim, flipTiming);
-    }
+    // Hide title during animation
+    gallery.style.setProperty('--title-y', '-1rem');
+    gallery.style.setProperty('--title-opacity', '0');
+    gallery.setAttribute('data-title', '');
 
-    // update image after animation
+    // Update images with slight delay so animation looks continuous
+    uniteRef.current.forEach((el, idx) => {
+      const delay =
+        (isReverse && (idx !== 1 && idx !== 2)) ||
+        (!isReverse && (idx === 1 || idx === 2))
+          ? FLIP_SPEED - 200
+          : 0;
+
+      setTimeout(() => setActiveImage(el), delay);
+    });
+
+    // Reveal new title roughly half-way through animation
     setTimeout(() => {
       setCurrentIndex(nextIndex);
-      uniteRef.current.forEach(setActiveImage);
       setImageTitle();
-    }, FLIP_SPEED / 2);
+    }, FLIP_SPEED * 0.5);
   };
 
   const updateIndex = (increment: number) => {
@@ -126,39 +193,7 @@ export default function Bilder() {
     updateGallery(nextIndex, isReverse);
   };
 
-  // Fallback images if no media from database
-  const fallbackImages = [
-    { 
-      title: 'Junior Center B2B Callcenter', 
-      url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&h=1000&fit=crop',
-      description: '1. Projekt - Customer Service'
-    },
-    { 
-      title: 'MMO Multimediateam', 
-      url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=1000&fit=crop',
-      description: '3. Projekt - Video & Illustration'
-    },
-    { 
-      title: 'Junior Center B2B Mediamatik', 
-      url: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&h=1000&fit=crop',
-      description: '2. Projekt - Photography'
-    },
-    { 
-      title: 'Motion', 
-      url: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=600&h=1000&fit=crop',
-      description: '4. Projekt - Motion Design'
-    },
-    { 
-      title: 'Portfolio Project', 
-      url: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&h=1000&fit=crop',
-      description: 'Personal Portfolio Website'
-    }
-  ];
-
-  // Use database media if available, otherwise use fallback
-  const displayImages = mediaItems.length > 0 ? mediaItems : fallbackImages;
-
-  if (loading) {
+  if (loading || !imagesLoaded) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
         <div className="text-2xl">Loading gallery...</div>
@@ -203,10 +238,15 @@ export default function Bilder() {
                 id="flip-gallery"
                 ref={containerRef}
                 className="relative w-full h-[350px] md:h-[400px] lg:h-[650px] text-center rounded-lg overflow-hidden"
-                style={{ perspective: '800px' }}
+                style={{ 
+                  perspective: '1000px',
+                  transformStyle: 'preserve-3d'
+                }}
               >
                 <div className="top unite bg-cover bg-no-repeat"></div>
                 <div className="bottom unite bg-cover bg-no-repeat"></div>
+                <div className="overlay-top unite bg-cover bg-no-repeat"></div>
+                <div className="overlay-bottom unite bg-cover bg-no-repeat"></div>
               </div>
 
               {/* navigation */}
@@ -245,6 +285,8 @@ export default function Bilder() {
           }
         }
 
+
+
         #flip-gallery::before {
           content: attr(data-title);
           color: #fbbf24;
@@ -280,24 +322,31 @@ export default function Bilder() {
           height: 50%;
           overflow: hidden;
           background-repeat: no-repeat;
+          transform-style: preserve-3d;
         }
 
-        .top {
+        .top,
+        .overlay-top {
           top: 0;
           transform-origin: bottom;
           background-position: top center;
           background-size: 100% 200%;
           border-top-left-radius: 0.5rem;
           border-top-right-radius: 0.5rem;
+          will-change: transform;
+          backface-visibility: hidden;
         }
 
-        .bottom {
+        .bottom,
+        .overlay-bottom {
           bottom: 0;
           transform-origin: top;
           background-position: bottom center;
           background-size: 100% 200%;
           border-bottom-left-radius: 0.5rem;
           border-bottom-right-radius: 0.5rem;
+          will-change: transform;
+          backface-visibility: hidden;
         }
       `}</style>
     </div>
