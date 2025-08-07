@@ -12,7 +12,6 @@ import {
   Video,
   Briefcase,
   Eye,
-  EyeOff,
   User
 } from 'lucide-react';
 import { 
@@ -533,11 +532,11 @@ export default function AdminDashboard() {
                 {isEditingProfile ? (
                   <form onSubmit={handleProfileSubmit} className="space-y-4">
                     <div className="flex items-center gap-6 mb-6">
-                      <img
-                        src={adminProfile?.profile_picture_url || '/placeholder-avatar.png'}
-                        alt="Profile"
-                        className="w-24 h-24 rounded-full object-cover"
-                      />
+                                          <img
+                      src={adminProfile?.profile_picture_url || '/placeholder-avatar.png'}
+                      alt="Admin Profile"
+                      className="w-24 h-24 rounded-full object-cover"
+                    />
                       <div className="flex-1">
                         <input
                           type="file"
@@ -602,13 +601,13 @@ export default function AdminDashboard() {
                   <div className="flex items-center gap-6">
                     <img
                       src={adminProfile?.profile_picture_url || '/placeholder-avatar.png'}
-                      alt={adminProfile?.name || 'Profile'}
+                      alt={adminProfile?.name || 'Admin Profile'}
                       className="w-24 h-24 rounded-full object-cover"
                     />
                     <div>
                       <h3 className="text-2xl font-bold text-white mb-2">{adminProfile?.name || 'No name set'}</h3>
                       <p className="text-gray-300 text-lg mb-2">{adminProfile?.position || 'No position set'}</p>
-                      <p className="text-gray-400 italic">"{adminProfile?.slogan || 'No slogan set'}"</p>
+                      <p className="text-gray-400 italic">&ldquo;{adminProfile?.slogan || 'No slogan set'}&rdquo;</p>
                     </div>
                   </div>
                 )}

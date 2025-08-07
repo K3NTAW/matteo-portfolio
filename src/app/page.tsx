@@ -1,11 +1,11 @@
 'use client';
 import { getExperiences, getAdminProfile } from '@/lib/database';
-import { Experience } from '@/types/database';
+import { Experience, AdminProfile } from '@/types/database';
 import { useEffect, useRef, useState } from 'react';
 
 export default function Home() {
   const [experiences, setExperiences] = useState<Experience[]>([]);
-  const [adminProfile, setAdminProfile] = useState<any>(null);
+  const [adminProfile, setAdminProfile] = useState<AdminProfile | null>(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const profileRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
