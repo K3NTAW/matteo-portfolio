@@ -100,18 +100,14 @@ export default function Bilder() {
 
     // animate top half
     const topEl = uniteRef.current[0];
-    const topAnimEl = uniteRef.current[2];
-    if (topEl && topAnimEl) {
+    if (topEl) {
       topEl.animate(topAnim, flipTiming);
-      topAnimEl.animate(topAnim, flipTiming);
     }
 
     // animate bottom half
     const bottomEl = uniteRef.current[1];
-    const bottomAnimEl = uniteRef.current[3];
-    if (bottomEl && bottomAnimEl) {
+    if (bottomEl) {
       bottomEl.animate(bottomAnim, flipTiming);
-      bottomAnimEl.animate(bottomAnim, flipTiming);
     }
 
     // update image after animation
@@ -211,8 +207,6 @@ export default function Bilder() {
               >
                 <div className="top unite bg-cover bg-no-repeat"></div>
                 <div className="bottom unite bg-cover bg-no-repeat"></div>
-                <div className="overlay-top unite bg-cover bg-no-repeat"></div>
-                <div className="overlay-bottom unite bg-cover bg-no-repeat"></div>
               </div>
 
               {/* navigation */}
@@ -285,24 +279,23 @@ export default function Bilder() {
           width: 100%;
           height: 50%;
           overflow: hidden;
-          background-size: cover;
-          background-position: center;
+          background-repeat: no-repeat;
         }
 
-        .top,
-        .overlay-top {
+        .top {
           top: 0;
           transform-origin: bottom;
           background-position: top center;
+          background-size: 100% 200%;
           border-top-left-radius: 0.5rem;
           border-top-right-radius: 0.5rem;
         }
 
-        .bottom,
-        .overlay-bottom {
+        .bottom {
           bottom: 0;
           transform-origin: top;
           background-position: bottom center;
+          background-size: 100% 200%;
           border-bottom-left-radius: 0.5rem;
           border-bottom-right-radius: 0.5rem;
         }
