@@ -7,7 +7,7 @@ const pageTitles: { [key: string]: string } = {
   '/': 'HOME',
   '/about': 'ABOUT',
   '/bilder': 'BILDER',
-  '/weiteres': 'WEITERES',
+  '/skills': 'SKILLS',
   '/contact': 'CONTACT'
 };
 

@@ -92,6 +92,16 @@ export default function Weiteres() {
     <div className="min-h-screen bg-black text-white font-sans relative overflow-hidden">
       {/* App Windows */}
       <AnimatePresence>
+        {/* Backdrop for active window */}
+        {activeWindow && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30"
+            onClick={() => setActiveWindow(null)}
+          />
+        )}
         {openApps.map((appId) => (
           <motion.div
             key={appId}
@@ -101,31 +111,56 @@ export default function Weiteres() {
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
             className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 ${
               activeWindow === appId ? 'z-50' : 'z-40'
-            }`}
+            } backdrop-blur-sm`}
             style={{
               width: '600px',
               maxWidth: '90vw',
               maxHeight: '80vh'
             }}
+            drag
+            dragMomentum={false}
+            dragElastic={0.1}
+            dragConstraints={{
+              top: -100,
+              left: -100,
+              right: 100,
+              bottom: 100
+            }}
           >
             {/* Window Header */}
-            <div className="bg-gray-800 rounded-t-lg border border-gray-600 flex items-center justify-between px-4 py-2">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-red-500 rounded-full cursor-pointer" onClick={() => closeWindow(appId)} />
-                <div className="w-3 h-3 bg-yellow-500 rounded-full" />
-                <div className="w-3 h-3 bg-green-500 rounded-full" />
-              </div>
+            <div className="bg-gradient-to-b from-gray-700 to-gray-800 rounded-t-2xl border border-gray-600 flex items-center justify-between px-4 py-3 shadow-sm relative">
+              {/* Subtle highlight at the top */}
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gray-500 to-transparent"></div>
+                              <div className="flex items-center space-x-2">
+                  <div 
+                    className="w-3 h-3 bg-red-500 rounded-full cursor-pointer hover:bg-red-400 transition-all duration-200 flex items-center justify-center group shadow-sm"
+                    onClick={() => closeWindow(appId)}
+                    title="Close"
+                  >
+                    <div className="w-1 h-1 bg-red-900 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+                  <div className="w-3 h-3 bg-yellow-500 rounded-full cursor-pointer hover:bg-yellow-400 transition-all duration-200 flex items-center justify-center group shadow-sm" title="Minimize">
+                    <div className="w-1 h-1 bg-yellow-900 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+                  <div className="w-3 h-3 bg-green-500 rounded-full cursor-pointer hover:bg-green-400 transition-all duration-200 flex items-center justify-center group shadow-sm" title="Maximize">
+                    <div className="w-1 h-1 bg-green-900 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                  </div>
+                </div>
               <div className="flex-1 text-center">
-                <span className="text-sm font-medium text-gray-300">{appContent[appId]?.title || appId}</span>
+                <span className="text-sm font-medium text-gray-200 tracking-wide">{appContent[appId]?.title || appId}</span>
               </div>
               <div className="w-16" /> {/* Spacer for centering */}
             </div>
             
             {/* Window Content */}
-            <div className="bg-gray-900 rounded-b-lg border border-gray-600 border-t-0 p-6 h-96 overflow-y-auto">
-              <pre className="text-sm text-gray-300 font-mono whitespace-pre-wrap leading-relaxed">
-                {appContent[appId]?.content || 'Content not available'}
-              </pre>
+            <div className="bg-white rounded-b-2xl border border-gray-600 border-t-0 shadow-2xl">
+              <div className="p-6 h-96 overflow-y-auto bg-gray-50 relative">
+                {/* Subtle texture overlay */}
+                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-gray-100/30 pointer-events-none rounded-b-2xl"></div>
+                <pre className="text-sm text-gray-800 font-mono whitespace-pre-wrap leading-relaxed relative z-10">
+                  {appContent[appId]?.content || 'Content not available'}
+                </pre>
+              </div>
             </div>
           </motion.div>
         ))}

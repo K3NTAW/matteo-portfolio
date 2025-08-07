@@ -9,7 +9,7 @@ const menuItems = [
   { title: 'HOME', href: '/', icon: <IoHomeOutline />, gradientFrom: '#a955ff', gradientTo: '#ea51ff' },
   { title: 'ABOUT', href: '/about', icon: <IoPersonOutline />, gradientFrom: '#56CCF2', gradientTo: '#2F80ED' },
   { title: 'BILDER', href: '/bilder', icon: <IoImagesOutline />, gradientFrom: '#FF9966', gradientTo: '#FF5E62' },
-  { title: 'WEITERES', href: '/weiteres', icon: <IoEllipsisHorizontalOutline />, gradientFrom: '#80FF72', gradientTo: '#7EE8FA' },
+  { title: 'SKILLS', href: '/skills', icon: <IoEllipsisHorizontalOutline />, gradientFrom: '#80FF72', gradientTo: '#7EE8FA' },
   { title: 'CONTACT', href: '/contact', icon: <IoMailOutline />, gradientFrom: '#ffa9c6', gradientTo: '#f434e2' }
 ];
 
