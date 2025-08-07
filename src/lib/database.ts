@@ -43,6 +43,9 @@ export async function updateExperience(id: string, updates: Partial<Experience>)
     .single()
 
   if (error) throw error
+  
+  // Invalidate cache
+  cache.delete(CACHE_KEYS.EXPERIENCES);
   return data
 }
 
@@ -211,6 +214,9 @@ export async function createAdminProfile(profile: Omit<AdminProfile, 'id' | 'cre
     .single()
 
   if (error) throw error
+  
+  // Invalidate cache
+  cache.delete(CACHE_KEYS.ADMIN_PROFILE);
   return data
 }
 
@@ -223,6 +229,9 @@ export async function updateAdminProfile(id: string, updates: Partial<AdminProfi
     .single()
 
   if (error) throw error
+  
+  // Invalidate cache
+  cache.delete(CACHE_KEYS.ADMIN_PROFILE);
   return data
 }
 
@@ -255,6 +264,9 @@ export async function createAboutContent(content: Omit<AboutContent, 'id' | 'cre
     .single()
 
   if (error) throw error
+  
+  // Invalidate cache
+  cache.delete(CACHE_KEYS.ABOUT_CONTENT);
   return data
 }
 
@@ -267,6 +279,9 @@ export async function updateAboutContent(id: string, updates: Partial<AboutConte
     .single()
 
   if (error) throw error
+  
+  // Invalidate cache
+  cache.delete(CACHE_KEYS.ABOUT_CONTENT);
   return data
 }
 
@@ -328,6 +343,9 @@ export async function createDockApp(app: Omit<DockApp, 'id' | 'created_at' | 'up
     .single()
 
   if (error) throw error
+  
+  // Invalidate cache
+  cache.delete(CACHE_KEYS.DOCK_APPS);
   return data
 }
 
@@ -340,6 +358,9 @@ export async function updateDockApp(id: string, updates: Partial<DockApp>): Prom
     .single()
 
   if (error) throw error
+  
+  // Invalidate cache
+  cache.delete(CACHE_KEYS.DOCK_APPS);
   return data
 }
 

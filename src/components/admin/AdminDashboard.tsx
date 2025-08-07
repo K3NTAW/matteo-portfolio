@@ -57,6 +57,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const [aboutContent, setAboutContent] = useState<AboutContent | null>(null);
   const [dockApps, setDockApps] = useState<DockApp[]>([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<Experience | Media | DockApp | null>(null);
 
@@ -157,6 +158,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
   const handleExperienceSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return; // Prevent double submission
+    
+    setSaving(true);
     try {
       const experienceData = {
         ...experienceForm,
@@ -171,9 +175,12 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       setShowForm(false);
       setEditingItem(null);
       setExperienceForm({ title: '', description: '', project_number: '' });
-      loadData();
+      await loadData(); // Wait for data to reload
     } catch (error) {
       console.error('Error saving experience:', error);
+      alert('Failed to save experience. Please try again.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -233,6 +240,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
   const handleProfileSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return; // Prevent double submission
+    
+    setSaving(true);
     try {
       let profilePictureUrl = adminProfile?.profile_picture_url || '';
       
@@ -254,14 +264,20 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       }
       
       setIsEditingProfile(false);
-      loadData();
+      await loadData(); // Wait for data to reload
     } catch (error) {
       console.error('Error saving profile:', error);
+      alert('Failed to save profile. Please try again.');
+    } finally {
+      setSaving(false);
     }
   };
 
   const handleAboutSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return; // Prevent double submission
+    
+    setSaving(true);
     try {
       let imageUrl = aboutContent?.image_url || '';
       
@@ -281,9 +297,12 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
       }
       
       setIsEditingAbout(false);
-      loadData();
+      await loadData(); // Wait for data to reload
     } catch (error) {
       console.error('Error saving about content:', error);
+      alert('Failed to save about content. Please try again.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -345,6 +364,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
   const handleDockAppSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (saving) return; // Prevent double submission
+    
+    setSaving(true);
     try {
       const dockAppData = {
         ...dockAppForm,
@@ -369,9 +391,12 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         is_active: true,
         sort_order: 0
       });
-      loadData();
+      await loadData(); // Wait for data to reload
     } catch (error) {
       console.error('Error saving dock app:', error);
+      alert('Failed to save dock app. Please try again.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -529,9 +554,21 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     <div className="flex gap-4">
                       <button
                         type="submit"
-                        className="bg-[#E0F21E] text-black px-6 py-2 rounded-lg"
+                        disabled={saving}
+                        className={`px-6 py-2 rounded-lg flex items-center gap-2 ${
+                          saving 
+                            ? 'bg-gray-500 text-gray-300 cursor-not-allowed' 
+                            : 'bg-[#E0F21E] text-black hover:bg-[#c4d91a]'
+                        }`}
                       >
-                        {editingItem ? 'Update' : 'Create'}
+                        {saving ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          editingItem ? 'Update' : 'Create'
+                        )}
                       </button>
                       <button
                         type="button"
@@ -790,9 +827,21 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     <div className="flex gap-4">
                       <button
                         type="submit"
-                        className="bg-[#E0F21E] text-black px-6 py-2 rounded-lg"
+                        disabled={saving}
+                        className={`px-6 py-2 rounded-lg flex items-center gap-2 ${
+                          saving 
+                            ? 'bg-gray-500 text-gray-300 cursor-not-allowed' 
+                            : 'bg-[#E0F21E] text-black hover:bg-[#c4d91a]'
+                        }`}
                       >
-                        Save Changes
+                        {saving ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          'Save Changes'
+                        )}
                       </button>
                       <button
                         type="button"
@@ -864,9 +913,21 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     <div className="flex gap-4">
                       <button
                         type="submit"
-                        className="bg-[#E0F21E] text-black px-6 py-2 rounded-lg"
+                        disabled={saving}
+                        className={`px-6 py-2 rounded-lg flex items-center gap-2 ${
+                          saving 
+                            ? 'bg-gray-500 text-gray-300 cursor-not-allowed' 
+                            : 'bg-[#E0F21E] text-black hover:bg-[#c4d91a]'
+                        }`}
                       >
-                        Save Changes
+                        {saving ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          'Save Changes'
+                        )}
                       </button>
                       <button
                         type="button"
@@ -1266,9 +1327,21 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     <div className="flex gap-4">
                       <button
                         type="submit"
-                        className="bg-[#E0F21E] text-black px-6 py-2 rounded-lg"
+                        disabled={saving}
+                        className={`px-6 py-2 rounded-lg flex items-center gap-2 ${
+                          saving 
+                            ? 'bg-gray-500 text-gray-300 cursor-not-allowed' 
+                            : 'bg-[#E0F21E] text-black hover:bg-[#c4d91a]'
+                        }`}
                       >
-                        {editingItem && 'app_id' in editingItem ? 'Update' : 'Create'} Dock App
+                        {saving ? (
+                          <>
+                            <div className="w-4 h-4 border-2 border-gray-300 border-t-transparent rounded-full animate-spin"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          editingItem && 'app_id' in editingItem ? 'Update' : 'Create'
+                        )} Dock App
                       </button>
                       <button
                         type="button"
