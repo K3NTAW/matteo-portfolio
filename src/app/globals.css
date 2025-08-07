@@ -227,3 +227,11 @@ body {
   z-index: 9999;
   overflow-y: auto;
 }
+
+/* Force window centering */
+.window-center {
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  position: absolute !important;
+}

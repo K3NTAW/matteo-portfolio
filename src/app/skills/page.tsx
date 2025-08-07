@@ -106,13 +106,13 @@ export default function Weiteres() {
           />
         )}
         {openApps.map((appId) => (
-          <motion.div
-            key={appId}
-            initial={{ opacity: 0, scale: 0.8, y: 50 }}
-            animate={{ opacity: 1, scale: 1, y: 0 }}
-            exit={{ opacity: 0, scale: 0.8, y: 50 }}
-            transition={{ type: "spring", damping: 25, stiffness: 300 }}
-            className={`absolute bg-background border border-border rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl ${
+                      <motion.div
+              key={appId}
+              initial={{ opacity: 0, scale: 0.8, y: 50 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.8, y: 50 }}
+              transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className={`absolute bg-background border border-border rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl window-center ${
               activeWindow === appId ? 'z-50' : 'z-40'
             }`}
             style={{
@@ -120,9 +120,10 @@ export default function Weiteres() {
               height: '600px',
               top: '50%',
               left: '50%',
-              transform: 'translate(-50%, -50%)',
-              maxWidth: '90vw',
-              maxHeight: '80vh'
+              transform: 'translate(-50%, -50%) !important',
+              maxWidth: '95vw',
+              maxHeight: '90vh',
+              position: 'absolute'
             }}
             drag
             dragMomentum={false}
