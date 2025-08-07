@@ -29,6 +29,16 @@ CREATE TABLE IF NOT EXISTS admins (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS admin_profiles (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  name TEXT NOT NULL,
+  position TEXT NOT NULL,
+  slogan TEXT NOT NULL,
+  profile_picture_url TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS contact_messages (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   name TEXT NOT NULL,
@@ -49,6 +59,7 @@ CREATE INDEX IF NOT EXISTS idx_contact_messages_created_at ON contact_messages(c
 ALTER TABLE experiences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE media ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
+ALTER TABLE admin_profiles ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
 
 -- Create simple policies - allow all operations (admin panel will handle authentication)
@@ -59,6 +70,9 @@ CREATE POLICY "Allow all operations on media" ON media
   FOR ALL USING (true) WITH CHECK (true);
 
 CREATE POLICY "Allow all operations on admins" ON admins
+  FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Allow all operations on admin_profiles" ON admin_profiles
   FOR ALL USING (true) WITH CHECK (true);
 
 CREATE POLICY "Allow all operations on contact_messages" ON contact_messages
@@ -80,6 +94,10 @@ CREATE TRIGGER update_experiences_updated_at
 
 CREATE TRIGGER update_media_updated_at 
   BEFORE UPDATE ON media 
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+CREATE TRIGGER update_admin_profiles_updated_at 
+  BEFORE UPDATE ON admin_profiles 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- Insert sample data

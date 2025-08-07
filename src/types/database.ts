@@ -25,6 +25,16 @@ export interface Admin {
   created_at: string
 }
 
+export interface AdminProfile {
+  id: string
+  name: string
+  position: string
+  slogan: string
+  profile_picture_url: string
+  created_at: string
+  updated_at: string
+}
+
 export interface ContactMessage {
   id: string
   name: string

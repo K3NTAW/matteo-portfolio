@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { Experience, Media, ContactMessage } from '@/types/database'
+import { Experience, Media, ContactMessage, AdminProfile } from '@/types/database'
 
 // Experience functions
 export async function getExperiences(): Promise<Experience[]> {
@@ -176,6 +176,50 @@ export async function deleteFile(filePath: string, bucket: string = 'portfolio-m
   const { error } = await supabase.storage
     .from(bucket)
     .remove([filePath])
+
+  if (error) throw error
+}
+
+// Admin Profile functions
+export async function getAdminProfile(): Promise<AdminProfile | null> {
+  const { data, error } = await supabase
+    .from('admin_profiles')
+    .select('*')
+    .limit(1)
+    .single()
+
+  if (error && error.code !== 'PGRST116') throw error // PGRST116 = no rows returned
+  return data
+}
+
+export async function createAdminProfile(profile: Omit<AdminProfile, 'id' | 'created_at' | 'updated_at'>): Promise<AdminProfile> {
+  const { data, error } = await supabase
+    .from('admin_profiles')
+    .insert(profile)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function updateAdminProfile(id: string, updates: Partial<AdminProfile>): Promise<AdminProfile> {
+  const { data, error } = await supabase
+    .from('admin_profiles')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function deleteAdminProfile(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('admin_profiles')
+    .delete()
+    .eq('id', id)
 
   if (error) throw error
 } 

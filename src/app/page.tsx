@@ -1,13 +1,20 @@
-import { getExperiences } from '@/lib/database';
+import { getExperiences, getAdminProfile } from '@/lib/database';
 import { Experience } from '@/types/database';
 
 export default async function Home() {
-  // Fetch experiences from database
+  // Fetch experiences and admin profile from database
   let experiences: Experience[] = [];
+  let adminProfile = null;
+  
   try {
-    experiences = await getExperiences();
+    const [expData, profileData] = await Promise.all([
+      getExperiences(),
+      getAdminProfile()
+    ]);
+    experiences = expData;
+    adminProfile = profileData;
   } catch (error) {
-    console.error('Error fetching experiences:', error);
+    console.error('Error fetching data:', error);
     // Fallback to empty array if database is not set up yet
   }
 
@@ -19,23 +26,22 @@ export default async function Home() {
         <div className="text-center max-w-4xl mx-auto">
           {/* Name - Large and bold */}
           <h1 className="text-9xl md:text-[10rem] lg:text-[14rem] font-bold tracking-tight leading-none mb-4 text-[#E0F21E]">
-            Matteo
+            {adminProfile?.name ? adminProfile.name.split(' ')[0] : 'Matteo'}
           </h1>
           
           {/* Surname */}
           <h2 className="text-9xl md:text-[10rem] lg:text-[14rem] font-bold tracking-tight leading-none mb-4 text-[#E0F21E]">
-            Pianta
+            {adminProfile?.name ? adminProfile.name.split(' ').slice(1).join(' ') : 'Pianta'}
           </h2>
           
           {/* Title */}
           <p className="text-xl md:text-2xl font-medium text-gray-300 mb-8">
-            Mediamatiker 2. Lehrjar
+            {adminProfile?.position || 'Mediamatiker 2. Lehrjar'}
           </p>
           
           {/* Description */}
           <p className="text-lg md:text-xl text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Ciao, ich bin Matteo. Momentan im 2. Lehrjahr als Mediamatiker. 
-            Erfahre mehr über mich auf dieser Seite!
+            {adminProfile?.slogan || 'Ciao, ich bin Matteo. Momentan im 2. Lehrjahr als Mediamatiker. Erfahre mehr über mich auf dieser Seite!'}
           </p>
         </div>
         

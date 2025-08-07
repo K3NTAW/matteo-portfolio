@@ -12,7 +12,8 @@ import {
   Video,
   Briefcase,
   Eye,
-  EyeOff
+  EyeOff,
+  User
 } from 'lucide-react';
 import { 
   getExperiences, 
@@ -25,15 +26,19 @@ import {
   getContactMessages,
   markMessageAsRead,
   deleteContactMessage,
-  uploadFile
+  uploadFile,
+  getAdminProfile,
+  createAdminProfile,
+  updateAdminProfile
 } from '@/lib/database';
-import { Experience, Media, ContactMessage } from '@/types/database';
+import { Experience, Media, ContactMessage, AdminProfile } from '@/types/database';
 
 export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'experiences' | 'media' | 'messages'>('experiences');
+  const [activeTab, setActiveTab] = useState<'experiences' | 'media' | 'messages' | 'profile'>('experiences');
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [media, setMedia] = useState<Media[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [adminProfile, setAdminProfile] = useState<AdminProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<Experience | Media | null>(null);
@@ -52,6 +57,14 @@ export default function AdminDashboard() {
     file: null as File | null
   });
 
+  const [profileForm, setProfileForm] = useState({
+    name: '',
+    position: '',
+    slogan: '',
+    profile_picture: null as File | null
+  });
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+
   useEffect(() => {
     loadData();
   }, []);
@@ -59,14 +72,26 @@ export default function AdminDashboard() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [expData, mediaData, messagesData] = await Promise.all([
+      const [expData, mediaData, messagesData, profileData] = await Promise.all([
         getExperiences(),
         getMedia(),
-        getContactMessages()
+        getContactMessages(),
+        getAdminProfile()
       ]);
       setExperiences(expData);
       setMedia(mediaData);
       setMessages(messagesData);
+      setAdminProfile(profileData);
+      
+      // Pre-fill profile form if profile exists
+      if (profileData) {
+        setProfileForm({
+          name: profileData.name,
+          position: profileData.position,
+          slogan: profileData.slogan,
+          profile_picture: null
+        });
+      }
     } catch (error) {
       console.error('Error loading data:', error);
     } finally {
@@ -147,6 +172,35 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleProfileSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      let profilePictureUrl = adminProfile?.profile_picture_url || '';
+      
+      if (profileForm.profile_picture) {
+        profilePictureUrl = await uploadFile(profileForm.profile_picture, 'portfolio-media');
+      }
+
+      const profileData = {
+        name: profileForm.name,
+        position: profileForm.position,
+        slogan: profileForm.slogan,
+        profile_picture_url: profilePictureUrl
+      };
+
+      if (adminProfile) {
+        await updateAdminProfile(adminProfile.id, profileData);
+      } else {
+        await createAdminProfile(profileData);
+      }
+      
+      setIsEditingProfile(false);
+      loadData();
+    } catch (error) {
+      console.error('Error saving profile:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -194,6 +248,17 @@ export default function AdminDashboard() {
           >
             <MessageSquare size={20} />
             Messages ({messages.filter(m => !m.read).length})
+          </button>
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+              activeTab === 'profile' 
+                ? 'bg-[#E0F21E] text-black' 
+                : 'bg-gray-800 text-white'
+            }`}
+          >
+            <User size={20} />
+            Profile
           </button>
         </div>
 
@@ -447,6 +512,106 @@ export default function AdminDashboard() {
                     </p>
                   </div>
                 ))}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'profile' && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Admin Profile</h2>
+                <button
+                  onClick={() => setIsEditingProfile(!isEditingProfile)}
+                  className="bg-[#E0F21E] text-black px-4 py-2 rounded-lg flex items-center gap-2"
+                >
+                  <Edit size={20} />
+                  {isEditingProfile ? 'Save Changes' : 'Edit Profile'}
+                </button>
+              </div>
+
+              <div className="bg-gray-800 p-6 rounded-lg">
+                {isEditingProfile ? (
+                  <form onSubmit={handleProfileSubmit} className="space-y-4">
+                    <div className="flex items-center gap-6 mb-6">
+                      <img
+                        src={adminProfile?.profile_picture_url || '/placeholder-avatar.png'}
+                        alt="Profile"
+                        className="w-24 h-24 rounded-full object-cover"
+                      />
+                      <div className="flex-1">
+                        <input
+                          type="file"
+                          onChange={(e) => setProfileForm({ ...profileForm, profile_picture: e.target.files?.[0] || null })}
+                          className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                          accept="image/*"
+                        />
+                      </div>
+                    </div>
+                    
+                    <input
+                      type="text"
+                      placeholder="Name"
+                      value={profileForm.name}
+                      onChange={(e) => setProfileForm({ ...profileForm, name: e.target.value })}
+                      className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                      required
+                    />
+                    <input
+                      type="text"
+                      placeholder="Position"
+                      value={profileForm.position}
+                      onChange={(e) => setProfileForm({ ...profileForm, position: e.target.value })}
+                      className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                      required
+                    />
+                    <textarea
+                      placeholder="Slogan"
+                      value={profileForm.slogan}
+                      onChange={(e) => setProfileForm({ ...profileForm, slogan: e.target.value })}
+                      className="w-full p-3 bg-gray-700 rounded-lg text-white h-20"
+                      required
+                    />
+                    <div className="flex gap-4">
+                      <button
+                        type="submit"
+                        className="bg-[#E0F21E] text-black px-6 py-2 rounded-lg"
+                      >
+                        Save Changes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditingProfile(false);
+                          // Reset form to current profile data
+                          if (adminProfile) {
+                            setProfileForm({
+                              name: adminProfile.name,
+                              position: adminProfile.position,
+                              slogan: adminProfile.slogan,
+                              profile_picture: null
+                            });
+                          }
+                        }}
+                        className="bg-gray-600 text-white px-6 py-2 rounded-lg"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="flex items-center gap-6">
+                    <img
+                      src={adminProfile?.profile_picture_url || '/placeholder-avatar.png'}
+                      alt={adminProfile?.name || 'Profile'}
+                      className="w-24 h-24 rounded-full object-cover"
+                    />
+                    <div>
+                      <h3 className="text-2xl font-bold text-white mb-2">{adminProfile?.name || 'No name set'}</h3>
+                      <p className="text-gray-300 text-lg mb-2">{adminProfile?.position || 'No position set'}</p>
+                      <p className="text-gray-400 italic">"{adminProfile?.slogan || 'No slogan set'}"</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
