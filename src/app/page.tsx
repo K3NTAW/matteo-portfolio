@@ -1,21 +1,48 @@
+'use client';
 import { getExperiences, getAdminProfile } from '@/lib/database';
 import { Experience } from '@/types/database';
+import { useEffect, useRef, useState } from 'react';
 
-export default async function Home() {
-  // Fetch experiences and admin profile from database
-  let experiences: Experience[] = [];
-  let adminProfile = null;
-  
-  try {
-    const [expData, profileData] = await Promise.all([
-      getExperiences(),
-      getAdminProfile()
-    ]);
-    experiences = expData;
-    adminProfile = profileData;
-  } catch (error) {
-    console.error('Error fetching data:', error);
-    // Fallback to empty array if database is not set up yet
+export default function Home() {
+  const [experiences, setExperiences] = useState<Experience[]>([]);
+  const [adminProfile, setAdminProfile] = useState<any>(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+  const profileRef = useRef<HTMLDivElement>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [expData, profileData] = await Promise.all([
+          getExperiences(),
+          getAdminProfile()
+        ]);
+        setExperiences(expData);
+        setAdminProfile(profileData);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  useEffect(() => {
+    const handleMouseMove = (e: MouseEvent) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
+    window.addEventListener('mousemove', handleMouseMove);
+    return () => window.removeEventListener('mousemove', handleMouseMove);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white font-sans flex items-center justify-center">
+        <div className="text-2xl">Loading...</div>
+      </div>
+    );
   }
 
   return (
@@ -25,9 +52,34 @@ export default async function Home() {
         {/* Main Content */}
         <div className="text-center max-w-4xl mx-auto">
           {/* Name - Large and bold */}
-          <h1 className="text-9xl md:text-[10rem] lg:text-[14rem] font-bold tracking-tight leading-none mb-4 text-[#E0F21E]">
+          <h1 className="text-9xl md:text-[10rem] lg:text-[14rem] font-bold tracking-tight leading-none mb-0 text-[#E0F21E]">
             {adminProfile?.name ? adminProfile.name.split(' ')[0] : 'Matteo'}
           </h1>
+          
+          {/* Profile Picture - Centered between names */}
+          {adminProfile?.profile_picture_url && (
+            <div className="flex justify-center -my-8 md:-my-12 lg:-my-16">
+              <div 
+                ref={profileRef}
+                className="relative w-32 h-32 md:w-40 md:h-40 lg:w-48 lg:h-48 rounded-full overflow-hidden shadow-lg transition-transform duration-300 ease-out"
+                style={{
+                  transform: `translate(${(mousePosition.x - window.innerWidth / 2) * 0.02}px, ${(mousePosition.y - window.innerHeight / 2) * 0.02}px)`
+                }}
+              >
+                {/* Glow effect */}
+                <div className="absolute inset-0 rounded-full bg-[#E0F21E] blur-2xl opacity-60 animate-pulse"></div>
+                <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#E0F21E]/80 via-[#E0F21E]/40 to-transparent blur-xl"></div>
+                <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#E0F21E]/60 via-transparent to-[#E0F21E]/30 blur-lg"></div>
+                
+                {/* Profile picture */}
+                <img
+                  src={adminProfile.profile_picture_url}
+                  alt={adminProfile.name}
+                  className="relative w-full h-full object-cover rounded-full"
+                />
+              </div>
+            </div>
+          )}
           
           {/* Surname */}
           <h2 className="text-9xl md:text-[10rem] lg:text-[14rem] font-bold tracking-tight leading-none mb-4 text-[#E0F21E]">
