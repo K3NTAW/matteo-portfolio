@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { getDockApps } from '@/lib/database';
 import { DockApp } from '@/types/database';
 import ImageModal from '@/components/ui/image-modal';
+import Image from 'next/image';
 
 // Helper function to create app content object from dock apps
 const createAppContent = (dockApps: DockApp[]) => {
@@ -91,7 +92,7 @@ export default function Weiteres() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans relative overflow-hidden" style={{ position: 'relative' }}>
+    <div className="min-h-screen bg-black text-white font-sans">
       {/* App Windows */}
       <AnimatePresence>
         {/* Backdrop for active window */}
@@ -168,27 +169,33 @@ export default function Weiteres() {
               <div className="p-6">
                 {appContent[appId]?.content_type === 'image' && appContent[appId]?.image_urls && appContent[appId].image_urls.length > 0 ? (
                   <div className="flex items-center justify-center h-full">
-                    <img 
+                    <Image 
                       src={appContent[appId].image_urls[0]} 
                       alt={appContent[appId]?.title || 'App content'}
+                      width={600}
+                      height={400}
                       className="max-w-full max-h-full object-contain rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-200"
                       onClick={() => setSelectedImage({
                         url: appContent[appId]?.image_urls?.[0] || '',
                         alt: appContent[appId]?.title || 'App content'
                       })}
+                      unoptimized={appContent[appId].image_urls[0].startsWith('data:') || appContent[appId].image_urls[0].startsWith('blob:')}
                     />
                   </div>
                 ) : appContent[appId]?.content_type === 'mixed' && appContent[appId]?.image_urls && appContent[appId].image_urls.length > 0 ? (
                   <div className="space-y-6">
                     <div className="flex justify-center">
-                      <img 
+                      <Image 
                         src={appContent[appId].image_urls[0]} 
                         alt={appContent[appId]?.title || 'App content'}
+                        width={400}
+                        height={256}
                         className="max-w-full max-h-64 object-contain rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-200"
                         onClick={() => setSelectedImage({
                           url: appContent[appId]?.image_urls?.[0] || '',
                           alt: appContent[appId]?.title || 'App content'
                         })}
+                        unoptimized={appContent[appId].image_urls[0].startsWith('data:') || appContent[appId].image_urls[0].startsWith('blob:')}
                       />
                     </div>
                     <pre className="text-sm text-foreground font-mono whitespace-pre-wrap leading-relaxed">
@@ -200,14 +207,17 @@ export default function Weiteres() {
                     <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                       {appContent[appId].image_urls.map((imageUrl, index) => (
                         <div key={index} className="aspect-square">
-                          <img 
+                          <Image 
                             src={imageUrl} 
                             alt={`${appContent[appId]?.title || 'App'} image ${index + 1}`}
+                            width={200}
+                            height={200}
                             className="w-full h-full object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
                             onClick={() => setSelectedImage({
                               url: imageUrl,
                               alt: `${appContent[appId]?.title || 'App'} image ${index + 1}`
                             })}
+                            unoptimized={imageUrl.startsWith('data:') || imageUrl.startsWith('blob:')}
                           />
                         </div>
                       ))}

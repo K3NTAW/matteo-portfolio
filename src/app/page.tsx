@@ -3,6 +3,7 @@ import { getExperiences, getAdminProfile } from '@/lib/database';
 import { Experience, AdminProfile } from '@/types/database';
 import { useEffect, useRef, useState } from 'react';
 import ImageModal from '@/components/ui/image-modal';
+import Image from 'next/image';
 
 export default function Home() {
   const [experiences, setExperiences] = useState<Experience[]>([]);
@@ -74,14 +75,18 @@ export default function Home() {
                 <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#E0F21E]/60 via-transparent to-[#E0F21E]/30 blur-lg"></div>
                 
                 {/* Profile picture */}
-                <img
+                <Image
                   src={adminProfile.profile_picture_url}
                   alt={adminProfile.name}
+                  width={192}
+                  height={192}
                   className="relative w-full h-full object-cover rounded-full cursor-pointer hover:opacity-90 transition-opacity duration-200"
                   onClick={() => setSelectedImage({
                     url: adminProfile.profile_picture_url,
                     alt: adminProfile.name
                   })}
+                  priority
+                  unoptimized={adminProfile.profile_picture_url.startsWith('data:') || adminProfile.profile_picture_url.startsWith('blob:')}
                 />
               </div>
             </div>

@@ -91,7 +91,7 @@ export default function Weiteres() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-black text-white font-sans">
       {/* App Windows */}
       <AnimatePresence>
         {/* Backdrop for active window */}

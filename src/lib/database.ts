@@ -1,15 +1,23 @@
 import { supabase } from './supabase'
 import { Experience, Media, ContactMessage, AdminProfile, AboutContent, Admin, DockApp } from '@/types/database'
+import { cache, CACHE_KEYS } from './cache'
 
 // Experience functions
 export async function getExperiences(): Promise<Experience[]> {
+  // Check cache first
+  const cached = cache.get<Experience[]>(CACHE_KEYS.EXPERIENCES);
+  if (cached) return cached;
+
   const { data, error } = await supabase
     .from('experiences')
     .select('*')
     .order('project_number', { ascending: true })
 
   if (error) throw error
-  return data || []
+  
+  const result = data || [];
+  cache.set(CACHE_KEYS.EXPERIENCES, result);
+  return result;
 }
 
 export async function createExperience(experience: Omit<Experience, 'id' | 'created_at' | 'updated_at'>): Promise<Experience> {
@@ -20,6 +28,9 @@ export async function createExperience(experience: Omit<Experience, 'id' | 'crea
     .single()
 
   if (error) throw error
+  
+  // Invalidate cache
+  cache.delete(CACHE_KEYS.EXPERIENCES);
   return data
 }
 
@@ -342,4 +353,25 @@ export async function deleteDockApp(id: string): Promise<void> {
     console.error('Error deleting dock app:', error);
     throw error;
   }
+}
+
+// Batch query function for admin dashboard
+export async function getDashboardData() {
+  const [experiences, media, messages, profile, about, dockApps] = await Promise.all([
+    getExperiences(),
+    getMedia(),
+    getContactMessages(),
+    getAdminProfile(),
+    getAboutContent(),
+    getAllDockApps()
+  ]);
+
+  return {
+    experiences,
+    media,
+    messages,
+    profile,
+    about,
+    dockApps
+  };
 } 

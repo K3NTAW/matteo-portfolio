@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getAboutContent } from '@/lib/database';
 import ImageModal from '@/components/ui/image-modal';
+import Image from 'next/image';
 
 export default function About() {
   const [aboutContent, setAboutContent] = useState<{ content?: string; image_url?: string } | null>(null);
@@ -59,14 +60,17 @@ export default function About() {
             <div className="lg:col-span-1 flex justify-center">
               {aboutContent?.image_url ? (
                 <div className="w-full max-w-md">
-                  <img
+                  <Image
                     src={aboutContent.image_url}
                     alt="About Me"
+                    width={400}
+                    height={300}
                     className="w-full h-auto rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-200"
                     onClick={() => setSelectedImage({
                       url: aboutContent.image_url || '',
                       alt: "About Me"
                     })}
+                    unoptimized={aboutContent.image_url?.startsWith('data:') || aboutContent.image_url?.startsWith('blob:')}
                   />
                 </div>
               ) : (
