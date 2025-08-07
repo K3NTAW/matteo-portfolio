@@ -21,6 +21,7 @@ export interface Media {
 export interface Admin {
   id: string
   email: string
+  password_hash: string
   role: 'admin'
   created_at: string
 }
@@ -31,6 +32,14 @@ export interface AdminProfile {
   position: string
   slogan: string
   profile_picture_url: string
+  created_at: string
+  updated_at: string
+}
+
+export interface AboutContent {
+  id: string
+  content: string
+  image_url: string
   created_at: string
   updated_at: string
 }

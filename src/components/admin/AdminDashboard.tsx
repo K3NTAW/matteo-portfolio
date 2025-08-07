@@ -12,7 +12,10 @@ import {
   Video,
   Briefcase,
   Eye,
-  User
+  User,
+  FileText,
+  LogOut,
+  Settings
 } from 'lucide-react';
 import { 
   getExperiences, 
@@ -28,16 +31,26 @@ import {
   uploadFile,
   getAdminProfile,
   createAdminProfile,
-  updateAdminProfile
+  updateAdminProfile,
+  getAboutContent,
+  createAboutContent,
+  updateAboutContent,
+  authenticateAdmin
 } from '@/lib/database';
-import { Experience, Media, ContactMessage, AdminProfile } from '@/types/database';
+import { Experience, Media, ContactMessage, AdminProfile, AboutContent } from '@/types/database';
+import { supabase } from '@/lib/supabase';
 
-export default function AdminDashboard() {
-  const [activeTab, setActiveTab] = useState<'experiences' | 'media' | 'messages' | 'profile'>('experiences');
+interface AdminDashboardProps {
+  onLogout: () => void;
+}
+
+export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
+  const [activeTab, setActiveTab] = useState<'experiences' | 'media' | 'messages' | 'profile' | 'about' | 'settings'>('experiences');
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [media, setMedia] = useState<Media[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [adminProfile, setAdminProfile] = useState<AdminProfile | null>(null);
+  const [aboutContent, setAboutContent] = useState<AboutContent | null>(null);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [editingItem, setEditingItem] = useState<Experience | Media | null>(null);
@@ -64,6 +77,20 @@ export default function AdminDashboard() {
   });
   const [isEditingProfile, setIsEditingProfile] = useState(false);
 
+  const [aboutForm, setAboutForm] = useState({
+    content: '',
+    image: null as File | null
+  });
+  const [isEditingAbout, setIsEditingAbout] = useState(false);
+
+  const [settingsForm, setSettingsForm] = useState({
+    email: '',
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  });
+  const [isEditingSettings, setIsEditingSettings] = useState(false);
+
   useEffect(() => {
     loadData();
   }, []);
@@ -71,16 +98,18 @@ export default function AdminDashboard() {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [expData, mediaData, messagesData, profileData] = await Promise.all([
+      const [expData, mediaData, messagesData, profileData, aboutData] = await Promise.all([
         getExperiences(),
         getMedia(),
         getContactMessages(),
-        getAdminProfile()
+        getAdminProfile(),
+        getAboutContent()
       ]);
       setExperiences(expData);
       setMedia(mediaData);
       setMessages(messagesData);
       setAdminProfile(profileData);
+      setAboutContent(aboutData);
       
       // Pre-fill profile form if profile exists
       if (profileData) {
@@ -89,6 +118,14 @@ export default function AdminDashboard() {
           position: profileData.position,
           slogan: profileData.slogan,
           profile_picture: null
+        });
+      }
+
+      // Pre-fill about form if content exists
+      if (aboutData) {
+        setAboutForm({
+          content: aboutData.content,
+          image: null
         });
       }
     } catch (error) {
@@ -200,6 +237,89 @@ export default function AdminDashboard() {
     }
   };
 
+  const handleAboutSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      let imageUrl = aboutContent?.image_url || '';
+      
+      if (aboutForm.image) {
+        imageUrl = await uploadFile(aboutForm.image, 'portfolio-media');
+      }
+
+      const aboutData = {
+        content: aboutForm.content,
+        image_url: imageUrl
+      };
+
+      if (aboutContent) {
+        await updateAboutContent(aboutContent.id, aboutData);
+      } else {
+        await createAboutContent(aboutData);
+      }
+      
+      setIsEditingAbout(false);
+      loadData();
+    } catch (error) {
+      console.error('Error saving about content:', error);
+    }
+  };
+
+  const handleSettingsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate password confirmation
+    if (settingsForm.newPassword !== settingsForm.confirmPassword) {
+      alert('New passwords do not match');
+      return;
+    }
+
+    // Validate current password
+    const adminSession = localStorage.getItem('adminSession');
+    if (!adminSession) {
+      alert('Session expired. Please login again.');
+      onLogout();
+      return;
+    }
+
+    try {
+      const currentAdmin = JSON.parse(adminSession);
+      
+      // Verify current password
+      const isValid = await authenticateAdmin(currentAdmin.email, settingsForm.currentPassword);
+      if (!isValid) {
+        alert('Current password is incorrect');
+        return;
+      }
+
+      // Update admin credentials in database
+      const { error } = await supabase
+        .from('admins')
+        .update({
+          email: settingsForm.email,
+          password_hash: settingsForm.newPassword
+        })
+        .eq('id', currentAdmin.id);
+
+      if (error) throw error;
+
+      // Update local session
+      const updatedAdmin = { ...currentAdmin, email: settingsForm.email };
+      localStorage.setItem('adminSession', JSON.stringify(updatedAdmin));
+
+      alert('Settings updated successfully!');
+      setIsEditingSettings(false);
+      setSettingsForm({
+        email: '',
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      });
+    } catch (error) {
+      console.error('Error updating settings:', error);
+      alert('Failed to update settings. Please try again.');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -211,7 +331,16 @@ export default function AdminDashboard() {
   return (
     <div className="admin-layout min-h-screen bg-black text-white p-8 relative z-50">
       <div className="max-w-7xl mx-auto">
-        <h1 className="text-4xl font-bold mb-8 text-[#E0F21E]">Admin Dashboard</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-[#E0F21E]">Admin Dashboard</h1>
+          <button
+            onClick={onLogout}
+            className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+          >
+            <LogOut size={20} />
+            Logout
+          </button>
+        </div>
 
         {/* Tabs */}
         <div className="flex gap-4 mb-8">
@@ -258,6 +387,28 @@ export default function AdminDashboard() {
           >
             <User size={20} />
             Profile
+          </button>
+          <button
+            onClick={() => setActiveTab('about')}
+            className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+              activeTab === 'about' 
+                ? 'bg-[#E0F21E] text-black' 
+                : 'bg-gray-800 text-white'
+            }`}
+          >
+            <FileText size={20} />
+            About
+          </button>
+          <button
+            onClick={() => setActiveTab('settings')}
+            className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+              activeTab === 'settings' 
+                ? 'bg-[#E0F21E] text-black' 
+                : 'bg-gray-800 text-white'
+            }`}
+          >
+            <Settings size={20} />
+            Settings
           </button>
         </div>
 
@@ -608,6 +759,211 @@ export default function AdminDashboard() {
                       <h3 className="text-2xl font-bold text-white mb-2">{adminProfile?.name || 'No name set'}</h3>
                       <p className="text-gray-300 text-lg mb-2">{adminProfile?.position || 'No position set'}</p>
                       <p className="text-gray-400 italic">&ldquo;{adminProfile?.slogan || 'No slogan set'}&rdquo;</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'about' && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">About Page Content</h2>
+                <button
+                  onClick={() => setIsEditingAbout(!isEditingAbout)}
+                  className="bg-[#E0F21E] text-black px-4 py-2 rounded-lg flex items-center gap-2"
+                >
+                  <Edit size={20} />
+                  {isEditingAbout ? 'Save Changes' : 'Edit Content'}
+                </button>
+              </div>
+
+              <div className="bg-gray-800 p-6 rounded-lg">
+                {isEditingAbout ? (
+                  <form onSubmit={handleAboutSubmit} className="space-y-4">
+                    <textarea
+                      placeholder="Content (supports line breaks)"
+                      value={aboutForm.content}
+                      onChange={(e) => setAboutForm({ ...aboutForm, content: e.target.value })}
+                      className="w-full p-3 bg-gray-700 rounded-lg text-white h-40"
+                      required
+                    />
+                    <input
+                      type="file"
+                      onChange={(e) => setAboutForm({ ...aboutForm, image: e.target.files?.[0] || null })}
+                      className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                      accept="image/*"
+                    />
+                    <div className="flex gap-4">
+                      <button
+                        type="submit"
+                        className="bg-[#E0F21E] text-black px-6 py-2 rounded-lg"
+                      >
+                        Save Changes
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditingAbout(false);
+                          // Reset form to current content
+                          if (aboutContent) {
+                            setAboutForm({
+                              content: aboutContent.content,
+                              image: null
+                            });
+                          }
+                        }}
+                        className="bg-gray-600 text-white px-6 py-2 rounded-lg"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                    <div className="lg:col-span-2">
+                      <div className="text-gray-300 leading-relaxed">
+                        {aboutContent?.content ? (
+                          <div dangerouslySetInnerHTML={{ __html: aboutContent.content.replace(/\n/g, '<br />') }} />
+                        ) : (
+                          <p>No content set</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="lg:col-span-1">
+                      {aboutContent?.image_url ? (
+                        <img
+                          src={aboutContent.image_url}
+                          alt="About page image"
+                          className="w-full h-auto rounded-lg"
+                        />
+                      ) : (
+                        <div className="w-full h-48 bg-gray-700 rounded-lg flex items-center justify-center">
+                          <p className="text-gray-500">No image uploaded</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'settings' && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Account Settings</h2>
+                <button
+                  onClick={() => setIsEditingSettings(!isEditingSettings)}
+                  className="bg-[#E0F21E] text-black px-4 py-2 rounded-lg flex items-center gap-2"
+                >
+                  <Edit size={20} />
+                  {isEditingSettings ? 'Save Changes' : 'Edit Settings'}
+                </button>
+              </div>
+
+              <div className="bg-gray-800 p-6 rounded-lg">
+                {isEditingSettings ? (
+                  <form onSubmit={handleSettingsSubmit} className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        New Email
+                      </label>
+                      <input
+                        type="email"
+                        placeholder="Enter new email"
+                        value={settingsForm.email}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, email: e.target.value })}
+                        className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Current Password
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="Enter current password"
+                        value={settingsForm.currentPassword}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, currentPassword: e.target.value })}
+                        className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        New Password
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="Enter new password"
+                        value={settingsForm.newPassword}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, newPassword: e.target.value })}
+                        className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Confirm New Password
+                      </label>
+                      <input
+                        type="password"
+                        placeholder="Confirm new password"
+                        value={settingsForm.confirmPassword}
+                        onChange={(e) => setSettingsForm({ ...settingsForm, confirmPassword: e.target.value })}
+                        className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                        required
+                      />
+                    </div>
+
+                    <div className="flex gap-4">
+                      <button
+                        type="submit"
+                        className="bg-[#E0F21E] text-black px-6 py-2 rounded-lg"
+                      >
+                        Update Settings
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsEditingSettings(false);
+                          setSettingsForm({
+                            email: '',
+                            currentPassword: '',
+                            newPassword: '',
+                            confirmPassword: ''
+                          });
+                        }}
+                        className="bg-gray-600 text-white px-6 py-2 rounded-lg"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                ) : (
+                  <div className="space-y-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-2">Current Email</h3>
+                      <p className="text-gray-300">
+                        {(() => {
+                          const adminSession = localStorage.getItem('adminSession');
+                          if (adminSession) {
+                            const admin = JSON.parse(adminSession);
+                            return admin.email;
+                          }
+                          return 'Not available';
+                        })()}
+                      </p>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-semibold text-white mb-2">Password</h3>
+                      <p className="text-gray-300">••••••••</p>
                     </div>
                   </div>
                 )}

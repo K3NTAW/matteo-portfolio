@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS media (
 CREATE TABLE IF NOT EXISTS admins (
   id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
   role TEXT DEFAULT 'admin' CHECK (role = 'admin'),
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -35,6 +36,14 @@ CREATE TABLE IF NOT EXISTS admin_profiles (
   position TEXT NOT NULL,
   slogan TEXT NOT NULL,
   profile_picture_url TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS about_content (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  content TEXT NOT NULL,
+  image_url TEXT NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
@@ -60,6 +69,7 @@ ALTER TABLE experiences ENABLE ROW LEVEL SECURITY;
 ALTER TABLE media ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admins ENABLE ROW LEVEL SECURITY;
 ALTER TABLE admin_profiles ENABLE ROW LEVEL SECURITY;
+ALTER TABLE about_content ENABLE ROW LEVEL SECURITY;
 ALTER TABLE contact_messages ENABLE ROW LEVEL SECURITY;
 
 -- Create simple policies - allow all operations (admin panel will handle authentication)
@@ -73,6 +83,9 @@ CREATE POLICY "Allow all operations on admins" ON admins
   FOR ALL USING (true) WITH CHECK (true);
 
 CREATE POLICY "Allow all operations on admin_profiles" ON admin_profiles
+  FOR ALL USING (true) WITH CHECK (true);
+
+CREATE POLICY "Allow all operations on about_content" ON about_content
   FOR ALL USING (true) WITH CHECK (true);
 
 CREATE POLICY "Allow all operations on contact_messages" ON contact_messages
@@ -100,6 +113,10 @@ CREATE TRIGGER update_admin_profiles_updated_at
   BEFORE UPDATE ON admin_profiles 
   FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
+CREATE TRIGGER update_about_content_updated_at 
+  BEFORE UPDATE ON about_content 
+  FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
 -- Insert sample data
 INSERT INTO experiences (title, description, project_number) VALUES
   ('Junior Center B2B Callcenter, Olten', 'Dies war mein erstes Projekt. Ich lernte, wie man mit Kunden umgeht und konnte meine kommunikativen Skills verbessern.', 1),
@@ -107,3 +124,8 @@ INSERT INTO experiences (title, description, project_number) VALUES
   ('MMO Multimediateam, Zürich', 'Von dem Videoschneiden bis zum Illustrieren konnte ich in allem Übung sammeln bei MMO.', 3),
   ('Motion, Zürich', 'Dies war mein erstes Projekt. Ich lernte, wie man mit Kunden umgeht und konnte meine kommunikativen Skills verbessern.', 4)
 ON CONFLICT (project_number) DO NOTHING;
+
+-- Insert sample admin user (password: admin123)
+INSERT INTO admins (email, password_hash, role) VALUES
+  ('admin@matteo.com', 'admin123', 'admin')
+ON CONFLICT (email) DO NOTHING;

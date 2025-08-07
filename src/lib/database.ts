@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { Experience, Media, ContactMessage, AdminProfile } from '@/types/database'
+import { Experience, Media, ContactMessage, AdminProfile, AboutContent } from '@/types/database'
 
 // Experience functions
 export async function getExperiences(): Promise<Experience[]> {
@@ -222,4 +222,67 @@ export async function deleteAdminProfile(id: string): Promise<void> {
     .eq('id', id)
 
   if (error) throw error
+}
+
+// About Content functions
+export async function getAboutContent(): Promise<AboutContent | null> {
+  const { data, error } = await supabase
+    .from('about_content')
+    .select('*')
+    .limit(1)
+    .single()
+
+  if (error && error.code !== 'PGRST116') throw error // PGRST116 = no rows returned
+  return data
+}
+
+export async function createAboutContent(content: Omit<AboutContent, 'id' | 'created_at' | 'updated_at'>): Promise<AboutContent> {
+  const { data, error } = await supabase
+    .from('about_content')
+    .insert(content)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function updateAboutContent(id: string, updates: Partial<AboutContent>): Promise<AboutContent> {
+  const { data, error } = await supabase
+    .from('about_content')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function deleteAboutContent(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('about_content')
+    .delete()
+    .eq('id', id)
+
+  if (error) throw error
+}
+
+// Authentication functions
+export async function authenticateAdmin(email: string, password: string): Promise<Admin | null> {
+  const { data, error } = await supabase
+    .from('admins')
+    .select('*')
+    .eq('email', email)
+    .single()
+
+  if (error || !data) return null
+
+  // In a real app, you'd use bcrypt or similar for password hashing
+  // For now, we'll do a simple comparison (NOT recommended for production)
+  if (data.password_hash === password) {
+    return data
+  }
+
+  return null
 } 
