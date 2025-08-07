@@ -16,7 +16,7 @@ export default function AdminPage() {
         if (admin && admin.email) {
           setIsAuthenticated(true);
         }
-      } catch (error) {
+      } catch {
         localStorage.removeItem('adminSession');
       }
     }

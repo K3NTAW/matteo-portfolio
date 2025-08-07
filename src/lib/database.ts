@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { Experience, Media, ContactMessage, AdminProfile, AboutContent } from '@/types/database'
+import { Experience, Media, ContactMessage, AdminProfile, AboutContent, Admin } from '@/types/database'
 
 // Experience functions
 export async function getExperiences(): Promise<Experience[]> {
