@@ -4,7 +4,6 @@ import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Mail, 
-  Phone, 
   MapPin, 
   Send, 
   User, 
@@ -12,11 +11,7 @@ import {
   Building, 
   ArrowRight,
   Sparkles,
-  CheckCircle,
-  Clock,
-  Globe,
-  Shield,
-  Zap
+  CheckCircle
 } from 'lucide-react';
 
 const contactMethods = [
@@ -195,7 +190,7 @@ export default function Contact() {
                 <Sparkles className="h-4 w-4 text-indigo-300" />
               </motion.div>
               <span className="text-sm font-medium text-white/80">
-                ✨ Let's Connect
+                ✨ Let&apos;s Connect
               </span>
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
             </motion.div>
@@ -243,7 +238,7 @@ export default function Contact() {
               <div>
                 <h3 className="text-3xl font-bold text-white mb-4">Send us a message</h3>
                 <p className="text-white/60 text-lg">
-                  Tell us about your project and we'll get back to you within 24 hours.
+                  Tell us about your project and we&apos;ll get back to you within 24 hours.
                 </p>
               </div>
 

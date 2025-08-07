@@ -23,7 +23,7 @@ export default function GradientMenu() {
           <li key={idx}>
             <Link href={href}>
               <div
-                style={{ '--gradient-from': gradientFrom, '--gradient-to': gradientTo }}
+                style={{ '--gradient-from': gradientFrom, '--gradient-to': gradientTo } as React.CSSProperties}
                 className={`relative w-[50px] h-[50px] bg-black border border-gray-700 shadow-lg rounded-full flex items-center justify-center transition-all duration-500 hover:w-[140px] hover:shadow-none group cursor-pointer ${
                   pathname === href ? 'ring-2 ring-yellow-400' : ''
                 }`}
