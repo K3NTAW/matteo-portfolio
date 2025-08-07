@@ -305,7 +305,7 @@ export default function AdminDashboard() {
                       type="number"
                       placeholder="Project Number"
                       value={experienceForm.project_number}
-                      onChange={(e) => setExperienceForm({ ...experienceForm, project_number: parseInt(e.target.value) })}
+                      onChange={(e) => setExperienceForm({ ...experienceForm, project_number: e.target.value })}
                       className="w-full p-3 bg-gray-700 rounded-lg text-white"
                       required
                     />
