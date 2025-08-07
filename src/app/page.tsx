@@ -2,6 +2,7 @@
 import { getExperiences, getAdminProfile } from '@/lib/database';
 import { Experience, AdminProfile } from '@/types/database';
 import { useEffect, useRef, useState } from 'react';
+import ImageModal from '@/components/ui/image-modal';
 
 export default function Home() {
   const [experiences, setExperiences] = useState<Experience[]>([]);
@@ -9,6 +10,7 @@ export default function Home() {
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
   const profileRef = useRef<HTMLDivElement>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<{ url: string; alt: string } | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -75,7 +77,11 @@ export default function Home() {
                 <img
                   src={adminProfile.profile_picture_url}
                   alt={adminProfile.name}
-                  className="relative w-full h-full object-cover rounded-full"
+                  className="relative w-full h-full object-cover rounded-full cursor-pointer hover:opacity-90 transition-opacity duration-200"
+                  onClick={() => setSelectedImage({
+                    url: adminProfile.profile_picture_url,
+                    alt: adminProfile.name
+                  })}
                 />
               </div>
             </div>
@@ -229,6 +235,14 @@ export default function Home() {
           </div>
         </div>
       </section>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        imageUrl={selectedImage?.url || ''}
+        alt={selectedImage?.alt || ''}
+      />
     </div>
   );
 }

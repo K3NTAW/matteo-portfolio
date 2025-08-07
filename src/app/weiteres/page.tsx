@@ -4,6 +4,7 @@ import MacOSDock from '@/components/ui/mac-dock';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getDockApps } from '@/lib/database';
 import { DockApp } from '@/types/database';
+import ImageModal from '@/components/ui/image-modal';
 
 // Helper function to create app content object from dock apps
 const createAppContent = (dockApps: DockApp[]) => {
@@ -31,6 +32,7 @@ export default function Weiteres() {
   const [openApps, setOpenApps] = useState<string[]>([]);
   const [activeWindow, setActiveWindow] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<{ url: string; alt: string } | null>(null);
 
   // Fetch dock apps from database
   useEffect(() => {
@@ -177,6 +179,14 @@ export default function Weiteres() {
           />
         </div>
       </section>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        imageUrl={selectedImage?.url || ''}
+        alt={selectedImage?.alt || ''}
+      />
     </div>
   );
 } 

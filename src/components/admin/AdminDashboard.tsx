@@ -1281,6 +1281,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                             icon_url: '',
                             title: '',
                             content: '',
+                            image_urls: [],
+                            content_type: 'text',
                             is_active: true,
                             sort_order: 0
                           });

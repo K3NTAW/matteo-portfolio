@@ -4,6 +4,7 @@ import MacOSDock from '@/components/ui/mac-dock';
 import { motion, AnimatePresence } from 'framer-motion';
 import { getDockApps } from '@/lib/database';
 import { DockApp } from '@/types/database';
+import ImageModal from '@/components/ui/image-modal';
 
 // Helper function to create app content object from dock apps
 const createAppContent = (dockApps: DockApp[]) => {
@@ -33,6 +34,7 @@ export default function Weiteres() {
   const [openApps, setOpenApps] = useState<string[]>([]);
   const [activeWindow, setActiveWindow] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<{ url: string; alt: string } | null>(null);
 
   // Fetch dock apps from database
   useEffect(() => {
@@ -169,7 +171,11 @@ export default function Weiteres() {
                     <img 
                       src={appContent[appId].image_urls[0]} 
                       alt={appContent[appId]?.title || 'App content'}
-                      className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+                      className="max-w-full max-h-full object-contain rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-200"
+                      onClick={() => setSelectedImage({
+                        url: appContent[appId]?.image_urls?.[0] || '',
+                        alt: appContent[appId]?.title || 'App content'
+                      })}
                     />
                   </div>
                 ) : appContent[appId]?.content_type === 'mixed' && appContent[appId]?.image_urls && appContent[appId].image_urls.length > 0 ? (
@@ -178,7 +184,11 @@ export default function Weiteres() {
                       <img 
                         src={appContent[appId].image_urls[0]} 
                         alt={appContent[appId]?.title || 'App content'}
-                        className="max-w-full max-h-64 object-contain rounded-lg shadow-lg"
+                        className="max-w-full max-h-64 object-contain rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-200"
+                        onClick={() => setSelectedImage({
+                          url: appContent[appId]?.image_urls?.[0] || '',
+                          alt: appContent[appId]?.title || 'App content'
+                        })}
                       />
                     </div>
                     <pre className="text-sm text-foreground font-mono whitespace-pre-wrap leading-relaxed">
@@ -194,6 +204,10 @@ export default function Weiteres() {
                             src={imageUrl} 
                             alt={`${appContent[appId]?.title || 'App'} image ${index + 1}`}
                             className="w-full h-full object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                            onClick={() => setSelectedImage({
+                              url: imageUrl,
+                              alt: `${appContent[appId]?.title || 'App'} image ${index + 1}`
+                            })}
                           />
                         </div>
                       ))}
@@ -226,6 +240,14 @@ export default function Weiteres() {
           />
         </div>
       </section>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        imageUrl={selectedImage?.url || ''}
+        alt={selectedImage?.alt || ''}
+      />
     </div>
   );
 } 

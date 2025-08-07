@@ -1,12 +1,35 @@
-import { getAboutContent } from '@/lib/database';
+'use client';
 
-export default async function About() {
-  let aboutContent = null;
-  
-  try {
-    aboutContent = await getAboutContent();
-  } catch (error) {
-    console.error('Error fetching about content:', error);
+import { useState, useEffect } from 'react';
+import { getAboutContent } from '@/lib/database';
+import ImageModal from '@/components/ui/image-modal';
+
+export default function About() {
+  const [aboutContent, setAboutContent] = useState<{ content?: string; image_url?: string } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [selectedImage, setSelectedImage] = useState<{ url: string; alt: string } | null>(null);
+
+  useEffect(() => {
+    const fetchAboutContent = async () => {
+      try {
+        const content = await getAboutContent();
+        setAboutContent(content);
+      } catch (error) {
+        console.error('Error fetching about content:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAboutContent();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white font-sans flex items-center justify-center">
+        <div className="text-2xl">Loading...</div>
+      </div>
+    );
   }
 
   return (
@@ -39,7 +62,11 @@ export default async function About() {
                   <img
                     src={aboutContent.image_url}
                     alt="About Me"
-                    className="w-full h-auto rounded-lg shadow-lg"
+                    className="w-full h-auto rounded-lg shadow-lg cursor-pointer hover:shadow-xl transition-shadow duration-200"
+                    onClick={() => setSelectedImage({
+                      url: aboutContent.image_url || '',
+                      alt: "About Me"
+                    })}
                   />
                 </div>
               ) : (
@@ -51,6 +78,14 @@ export default async function About() {
           </div>
         </div>
       </section>
+
+      {/* Image Modal */}
+      <ImageModal
+        isOpen={!!selectedImage}
+        onClose={() => setSelectedImage(null)}
+        imageUrl={selectedImage?.url || ''}
+        alt={selectedImage?.alt || ''}
+      />
     </div>
   );
 } 
