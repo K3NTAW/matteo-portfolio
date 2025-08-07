@@ -102,6 +102,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     icon_url: '',
     title: '',
     content: '',
+    image_urls: [] as string[],
+    content_type: 'text' as 'text' | 'image' | 'mixed' | 'gallery',
     is_active: true,
     sort_order: 0
   });
@@ -362,6 +364,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
         icon_url: '',
         title: '',
         content: '',
+        image_urls: [],
+        content_type: 'text',
         is_active: true,
         sort_order: 0
       });
@@ -1115,6 +1119,23 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
 
                     <div>
                       <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Content Type
+                      </label>
+                      <select
+                        value={dockAppForm.content_type}
+                        onChange={(e) => setDockAppForm({ ...dockAppForm, content_type: e.target.value as 'text' | 'image' | 'mixed' | 'gallery' })}
+                        className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                        required
+                      >
+                        <option value="text">Text Only</option>
+                        <option value="image">Single Image</option>
+                        <option value="mixed">Text + Single Image</option>
+                        <option value="gallery">Image Gallery</option>
+                      </select>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
                         Content
                       </label>
                       <textarea
@@ -1125,6 +1146,94 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                         required
                       />
                     </div>
+
+                    {(dockAppForm.content_type === 'image' || dockAppForm.content_type === 'mixed') && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Content Image
+                        </label>
+                        <input
+                          type="file"
+                          onChange={async (e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              try {
+                                const imageUrl = await uploadFile(file);
+                                setDockAppForm({ ...dockAppForm, image_urls: [imageUrl] });
+                              } catch (error) {
+                                console.error('Error uploading image:', error);
+                              }
+                            }
+                          }}
+                          className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                          accept="image/*"
+                        />
+                        {dockAppForm.image_urls.length > 0 && (
+                          <div className="mt-2">
+                            <img 
+                              src={dockAppForm.image_urls[0]} 
+                              alt="Preview" 
+                              className="w-32 h-32 object-cover rounded-lg"
+                            />
+                          </div>
+                        )}
+                      </div>
+                    )}
+
+                    {dockAppForm.content_type === 'gallery' && (
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Image Gallery
+                        </label>
+                        <input
+                          type="file"
+                          multiple
+                          onChange={async (e) => {
+                            const files = Array.from(e.target.files || []);
+                            try {
+                              const uploadPromises = files.map(file => uploadFile(file));
+                              const imageUrls = await Promise.all(uploadPromises);
+                              setDockAppForm({ 
+                                ...dockAppForm, 
+                                image_urls: [...dockAppForm.image_urls, ...imageUrls] 
+                              });
+                            } catch (error) {
+                              console.error('Error uploading images:', error);
+                            }
+                          }}
+                          className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                          accept="image/*"
+                        />
+                        {dockAppForm.image_urls.length > 0 && (
+                          <div className="mt-4">
+                            <label className="block text-sm font-medium text-gray-300 mb-2">
+                              Gallery Images ({dockAppForm.image_urls.length})
+                            </label>
+                            <div className="grid grid-cols-4 gap-2">
+                              {dockAppForm.image_urls.map((url, index) => (
+                                <div key={index} className="relative">
+                                  <img 
+                                    src={url} 
+                                    alt={`Gallery image ${index + 1}`} 
+                                    className="w-20 h-20 object-cover rounded-lg"
+                                  />
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const newUrls = dockAppForm.image_urls.filter((_, i) => i !== index);
+                                      setDockAppForm({ ...dockAppForm, image_urls: newUrls });
+                                    }}
+                                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs hover:bg-red-600"
+                                  >
+                                    ×
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -1225,6 +1334,8 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                             icon_url: app.icon_url,
                             title: app.title,
                             content: app.content,
+                            image_urls: app.image_urls || [],
+                            content_type: app.content_type,
                             is_active: app.is_active,
                             sort_order: app.sort_order
                           });

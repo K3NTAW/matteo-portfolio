@@ -61,6 +61,8 @@ export interface DockApp {
   icon_url: string
   title: string
   content: string
+  image_urls?: string[]
+  content_type: 'text' | 'image' | 'mixed' | 'gallery'
   is_active: boolean
   sort_order: number
   created_at: string

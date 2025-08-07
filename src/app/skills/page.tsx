@@ -7,11 +7,13 @@ import { DockApp } from '@/types/database';
 
 // Helper function to create app content object from dock apps
 const createAppContent = (dockApps: DockApp[]) => {
-  const content: Record<string, { title: string; content: string }> = {};
+  const content: Record<string, { title: string; content: string; image_urls?: string[]; content_type: string }> = {};
   dockApps.forEach(app => {
     content[app.app_id] = {
       title: app.title,
-      content: app.content
+      content: app.content,
+      image_urls: app.image_urls,
+      content_type: app.content_type
     };
   });
   return content;
@@ -38,11 +40,9 @@ export default function Weiteres() {
       try {
         const apps = await getDockApps();
         setDockApps(apps);
-        // Set some default open apps if available
-        if (apps.length > 0) {
-          setOpenApps([apps[0].app_id]);
-          setActiveWindow(apps[0].app_id);
-        }
+        // Don't open any apps by default
+        setOpenApps([]);
+        setActiveWindow(null);
       } catch (error) {
         console.error('Error fetching dock apps:', error);
       } finally {
@@ -89,7 +89,7 @@ export default function Weiteres() {
   }
 
   return (
-    <div className="min-h-screen bg-black text-white font-sans relative overflow-hidden">
+    <div className="min-h-screen bg-black text-white font-sans relative overflow-hidden" style={{ position: 'relative' }}>
       {/* App Windows */}
       <AnimatePresence>
         {/* Backdrop for active window */}
@@ -98,7 +98,7 @@ export default function Weiteres() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-30"
+            className="fixed inset-0 bg-black/40 backdrop-blur-md z-30"
             onClick={() => setActiveWindow(null)}
           />
         )}
@@ -108,12 +108,16 @@ export default function Weiteres() {
             initial={{ opacity: 0, scale: 0.8, y: 50 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.8, y: 50 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-            className={`absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 z-50 ${
+            transition={{ type: "spring", damping: 25, stiffness: 300 }}
+            className={`absolute bg-background border border-border rounded-xl shadow-2xl overflow-hidden backdrop-blur-xl ${
               activeWindow === appId ? 'z-50' : 'z-40'
-            } backdrop-blur-sm`}
+            }`}
             style={{
-              width: '600px',
+              width: '800px',
+              height: '600px',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
               maxWidth: '90vw',
               maxHeight: '80vh'
             }}
@@ -127,39 +131,84 @@ export default function Weiteres() {
               bottom: 100
             }}
           >
-            {/* Window Header */}
-            <div className="bg-gradient-to-b from-gray-700 to-gray-800 rounded-t-2xl border border-gray-600 flex items-center justify-between px-4 py-3 shadow-sm relative">
-              {/* Subtle highlight at the top */}
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-gray-500 to-transparent"></div>
-                              <div className="flex items-center space-x-2">
-                  <div 
-                    className="w-3 h-3 bg-red-500 rounded-full cursor-pointer hover:bg-red-400 transition-all duration-200 flex items-center justify-center group shadow-sm"
+                        {/* Window Header */}
+            <div className="h-12 bg-background/95 backdrop-blur-md border-b border-border flex items-center justify-between px-4">
+              <div className="flex items-center space-x-3">
+                {/* Traffic Light Buttons */}
+                <div className="flex space-x-2">
+                  <button
                     onClick={() => closeWindow(appId)}
+                    className="w-3 h-3 bg-red-500 rounded-full hover:bg-red-600 transition-colors"
                     title="Close"
-                  >
-                    <div className="w-1 h-1 bg-red-900 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  </div>
-                  <div className="w-3 h-3 bg-yellow-500 rounded-full cursor-pointer hover:bg-yellow-400 transition-all duration-200 flex items-center justify-center group shadow-sm" title="Minimize">
-                    <div className="w-1 h-1 bg-yellow-900 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  </div>
-                  <div className="w-3 h-3 bg-green-500 rounded-full cursor-pointer hover:bg-green-400 transition-all duration-200 flex items-center justify-center group shadow-sm" title="Maximize">
-                    <div className="w-1 h-1 bg-green-900 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
-                  </div>
+                  />
+                  <button
+                    className="w-3 h-3 bg-yellow-500 rounded-full hover:bg-yellow-600 transition-colors"
+                    title="Minimize"
+                  />
+                  <button
+                    className="w-3 h-3 bg-green-500 rounded-full hover:bg-green-600 transition-colors"
+                    title="Maximize"
+                  />
                 </div>
-              <div className="flex-1 text-center">
-                <span className="text-sm font-medium text-gray-200 tracking-wide">{appContent[appId]?.title || appId}</span>
               </div>
-              <div className="w-16" /> {/* Spacer for centering */}
+              
+              {/* Window Title */}
+              <div className="flex items-center space-x-2 absolute left-1/2 transform -translate-x-1/2">
+                <span className="text-sm font-medium text-foreground">{appContent[appId]?.title || appId}</span>
+              </div>
+
+              {/* Spacer for centering */}
+              <div className="w-16" />
             </div>
             
             {/* Window Content */}
-            <div className="bg-white rounded-b-2xl border border-gray-600 border-t-0 shadow-2xl">
-              <div className="p-6 h-96 overflow-y-auto bg-gray-50 relative">
-                {/* Subtle texture overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-transparent via-transparent to-gray-100/30 pointer-events-none rounded-b-2xl"></div>
-                <pre className="text-sm text-gray-800 font-mono whitespace-pre-wrap leading-relaxed relative z-10">
-                  {appContent[appId]?.content || 'Content not available'}
-                </pre>
+            <div className="h-full bg-background/50 backdrop-blur-sm overflow-auto">
+              <div className="p-6">
+                {appContent[appId]?.content_type === 'image' && appContent[appId]?.image_urls && appContent[appId].image_urls.length > 0 ? (
+                  <div className="flex items-center justify-center h-full">
+                    <img 
+                      src={appContent[appId].image_urls[0]} 
+                      alt={appContent[appId]?.title || 'App content'}
+                      className="max-w-full max-h-full object-contain rounded-lg shadow-lg"
+                    />
+                  </div>
+                ) : appContent[appId]?.content_type === 'mixed' && appContent[appId]?.image_urls && appContent[appId].image_urls.length > 0 ? (
+                  <div className="space-y-6">
+                    <div className="flex justify-center">
+                      <img 
+                        src={appContent[appId].image_urls[0]} 
+                        alt={appContent[appId]?.title || 'App content'}
+                        className="max-w-full max-h-64 object-contain rounded-lg shadow-lg"
+                      />
+                    </div>
+                    <pre className="text-sm text-foreground font-mono whitespace-pre-wrap leading-relaxed">
+                      {appContent[appId]?.content || 'Content not available'}
+                    </pre>
+                  </div>
+                ) : appContent[appId]?.content_type === 'gallery' && appContent[appId]?.image_urls && appContent[appId].image_urls.length > 0 ? (
+                  <div className="space-y-6">
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {appContent[appId].image_urls.map((imageUrl, index) => (
+                        <div key={index} className="aspect-square">
+                          <img 
+                            src={imageUrl} 
+                            alt={`${appContent[appId]?.title || 'App'} image ${index + 1}`}
+                            className="w-full h-full object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow cursor-pointer"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    {appContent[appId]?.content && (
+                      <pre className="text-sm text-foreground font-mono whitespace-pre-wrap leading-relaxed">
+                        {appContent[appId].content}
+                      </pre>
+                    )}
+                  </div>
+                ) : (
+                  <pre className="text-sm text-foreground font-mono whitespace-pre-wrap leading-relaxed">
+                    {appContent[appId]?.content || 'Content not available'}
+                  </pre>
+                )}
               </div>
             </div>
           </motion.div>
