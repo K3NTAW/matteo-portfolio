@@ -215,3 +215,15 @@ body {
 .animate-scroll-right {
   animation: scroll-right 30s linear infinite;
 }
+
+/* Admin layout styles */
+.admin-layout {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: black;
+  z-index: 9999;
+  overflow-y: auto;
+}

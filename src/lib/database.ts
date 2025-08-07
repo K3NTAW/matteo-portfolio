@@ -1,0 +1,181 @@
+import { supabase } from './supabase'
+import { Experience, Media, ContactMessage } from '@/types/database'
+
+// Experience functions
+export async function getExperiences(): Promise<Experience[]> {
+  const { data, error } = await supabase
+    .from('experiences')
+    .select('*')
+    .order('project_number', { ascending: true })
+
+  if (error) throw error
+  return data || []
+}
+
+export async function createExperience(experience: Omit<Experience, 'id' | 'created_at' | 'updated_at'>): Promise<Experience> {
+  const { data, error } = await supabase
+    .from('experiences')
+    .insert(experience)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function updateExperience(id: string, updates: Partial<Experience>): Promise<Experience> {
+  const { data, error } = await supabase
+    .from('experiences')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function deleteExperience(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('experiences')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting experience:', error);
+    throw error;
+  }
+}
+
+// Media functions
+export async function getMedia(): Promise<Media[]> {
+  const { data, error } = await supabase
+    .from('media')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data || []
+}
+
+export async function getMediaByType(fileType: 'image' | 'video'): Promise<Media[]> {
+  const { data, error } = await supabase
+    .from('media')
+    .select('*')
+    .eq('file_type', fileType)
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data || []
+}
+
+export async function createMedia(media: Omit<Media, 'id' | 'created_at' | 'updated_at'>): Promise<Media> {
+  const { data, error } = await supabase
+    .from('media')
+    .insert(media)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function updateMedia(id: string, updates: Partial<Media>): Promise<Media> {
+  const { data, error } = await supabase
+    .from('media')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function deleteMedia(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('media')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting media:', error);
+    throw error;
+  }
+}
+
+// Contact message functions
+export async function createContactMessage(message: Omit<ContactMessage, 'id' | 'created_at' | 'read'>): Promise<ContactMessage> {
+  const { data, error } = await supabase
+    .from('contact_messages')
+    .insert(message)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Supabase error:', error);
+    throw error;
+  }
+  return data
+}
+
+export async function getContactMessages(): Promise<ContactMessage[]> {
+  const { data, error } = await supabase
+    .from('contact_messages')
+    .select('*')
+    .order('created_at', { ascending: false })
+
+  if (error) throw error
+  return data || []
+}
+
+export async function markMessageAsRead(id: string): Promise<ContactMessage> {
+  const { data, error } = await supabase
+    .from('contact_messages')
+    .update({ read: true })
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function deleteContactMessage(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('contact_messages')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting contact message:', error);
+    throw error;
+  }
+}
+
+// File upload functions
+export async function uploadFile(file: File, bucket: string = 'portfolio-media'): Promise<string> {
+  const fileExt = file.name.split('.').pop()
+  const fileName = `${Math.random()}.${fileExt}`
+  const filePath = `${bucket}/${fileName}`
+
+  const { error } = await supabase.storage
+    .from(bucket)
+    .upload(filePath, file)
+
+  if (error) throw error
+
+  const { data } = supabase.storage
+    .from(bucket)
+    .getPublicUrl(filePath)
+
+  return data.publicUrl
+}
+
+export async function deleteFile(filePath: string, bucket: string = 'portfolio-media'): Promise<void> {
+  const { error } = await supabase.storage
+    .from(bucket)
+    .remove([filePath])
+
+  if (error) throw error
+} 

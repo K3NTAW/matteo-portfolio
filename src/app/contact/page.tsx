@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { createContactMessage } from '@/lib/database';
 import { 
   Mail, 
   MapPin, 
@@ -45,6 +46,7 @@ export default function Contact() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
   const handleInputChange = (field: string, value: string) => {
@@ -82,10 +84,24 @@ export default function Contact() {
     if (!validateForm()) return;
     
     setIsSubmitting(true);
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setIsSubmitting(false);
-    setIsSubmitted(true);
+    setSubmitError(null);
+    
+    try {
+      await createContactMessage({
+        name: formData.name,
+        email: formData.email,
+        company: formData.company || undefined,
+        message: formData.message
+      });
+      setIsSubmitted(true);
+      // Reset form data after successful submission
+      setFormData({ name: '', email: '', company: '', message: '' });
+    } catch (error) {
+      console.error('Error sending message:', error);
+      setSubmitError('Failed to send message. Please try again or contact us directly.');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const fadeInUp = {
@@ -360,6 +376,17 @@ export default function Contact() {
                         )}
                       </span>
                     </motion.button>
+                    
+                    {/* Error Display */}
+                    {submitError && (
+                      <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="mt-4 p-4 bg-red-500/20 border border-red-400/30 rounded-lg"
+                      >
+                        <p className="text-red-400 text-sm">{submitError}</p>
+                      </motion.div>
+                    )}
                   </motion.form>
                 ) : (
                   <motion.div

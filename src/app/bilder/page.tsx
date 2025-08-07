@@ -2,34 +2,8 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-
-const images = [
-  { 
-    title: 'Junior Center B2B Callcenter', 
-    url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&h=1000&fit=crop',
-    description: '1. Projekt - Customer Service'
-  },
-  { 
-    title: 'MMO Multimediateam', 
-    url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=1000&fit=crop',
-    description: '3. Projekt - Video & Illustration'
-  },
-  { 
-    title: 'Junior Center B2B Mediamatik', 
-    url: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&h=1000&fit=crop',
-    description: '2. Projekt - Photography'
-  },
-  { 
-    title: 'Motion', 
-    url: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=600&h=1000&fit=crop',
-    description: '4. Projekt - Motion Design'
-  },
-  { 
-    title: 'Portfolio Project', 
-    url: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&h=1000&fit=crop',
-    description: 'Personal Portfolio Website'
-  }
-];
+import { getMedia } from '@/lib/database';
+import { Media } from '@/types/database';
 
 const FLIP_SPEED = 750;
 const flipTiming = { duration: FLIP_SPEED, iterations: 1 };
@@ -62,14 +36,34 @@ export default function Bilder() {
   const containerRef = useRef<HTMLDivElement>(null);
   const uniteRef = useRef<Element[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [mediaItems, setMediaItems] = useState<Media[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Fetch media from database
+  useEffect(() => {
+    const fetchMedia = async () => {
+      try {
+        const media = await getMedia();
+        setMediaItems(media);
+      } catch (error) {
+        console.error('Error fetching media:', error);
+        // Fallback to empty array if database is not set up
+        setMediaItems([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMedia();
+  }, []);
 
   // initialise first image once
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!containerRef.current || mediaItems.length === 0) return;
     uniteRef.current = Array.from(containerRef.current.querySelectorAll('.unite'));
     defineFirstImg();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [mediaItems]);
 
   const defineFirstImg = () => {
     uniteRef.current.forEach(setActiveImage);
@@ -77,23 +71,26 @@ export default function Bilder() {
   };
 
   const setActiveImage = (el: Element) => {
-    if (el instanceof HTMLElement) {
-      el.style.backgroundImage = `url('${images[currentIndex].url}')`;
+    if (el instanceof HTMLElement && displayImages[currentIndex]) {
+      const imageUrl = 'file_url' in displayImages[currentIndex] 
+        ? displayImages[currentIndex].file_url 
+        : displayImages[currentIndex].url;
+      el.style.backgroundImage = `url('${imageUrl}')`;
     }
   };
 
   const setImageTitle = () => {
     const gallery = containerRef.current;
-    if (!gallery) return;
-    gallery.setAttribute('data-title', images[currentIndex].title);
-    gallery.setAttribute('data-description', images[currentIndex].description);
+    if (!gallery || !displayImages[currentIndex]) return;
+    gallery.setAttribute('data-title', displayImages[currentIndex].title);
+    gallery.setAttribute('data-description', displayImages[currentIndex].description || '');
     gallery.style.setProperty('--title-y', '0');
     gallery.style.setProperty('--title-opacity', '1');
   };
 
   const updateGallery = (nextIndex: number, isReverse = false) => {
     const gallery = containerRef.current;
-    if (!gallery) return;
+    if (!gallery || displayImages.length === 0) return;
 
     // determine direction animation arrays
     const topAnim = isReverse ? flipAnimationTopReverse : flipAnimationTop;
@@ -101,50 +98,87 @@ export default function Bilder() {
       ? flipAnimationBottomReverse
       : flipAnimationBottom;
 
-    const overlayTop = gallery.querySelector('.overlay-top');
-    const overlayBottom = gallery.querySelector('.overlay-bottom');
-    
-    if (overlayTop) overlayTop.animate(topAnim, flipTiming);
-    if (overlayBottom) overlayBottom.animate(bottomAnim, flipTiming);
+    // animate top half
+    const topEl = uniteRef.current[0];
+    const topAnimEl = uniteRef.current[2];
+    if (topEl && topAnimEl) {
+      topEl.animate(topAnim, flipTiming);
+      topAnimEl.animate(topAnim, flipTiming);
+    }
 
-    // hide title
-    gallery.style.setProperty('--title-y', '-1rem');
-    gallery.style.setProperty('--title-opacity', '0');
-    gallery.setAttribute('data-title', '');
-    gallery.setAttribute('data-description', '');
+    // animate bottom half
+    const bottomEl = uniteRef.current[1];
+    const bottomAnimEl = uniteRef.current[3];
+    if (bottomEl && bottomAnimEl) {
+      bottomEl.animate(bottomAnim, flipTiming);
+      bottomAnimEl.animate(bottomAnim, flipTiming);
+    }
 
-    // update images with slight delay so animation looks continuous
-    uniteRef.current.forEach((el, idx) => {
-      const delay =
-        (isReverse && (idx !== 1 && idx !== 2)) ||
-        (!isReverse && (idx === 1 || idx === 2))
-          ? FLIP_SPEED - 200
-          : 0;
-
-      setTimeout(() => setActiveImage(el), delay);
-    });
-
-    // reveal new title roughly half‑way through animation
-    setTimeout(setImageTitle, FLIP_SPEED * 0.5);
+    // update image after animation
+    setTimeout(() => {
+      setCurrentIndex(nextIndex);
+      uniteRef.current.forEach(setActiveImage);
+      setImageTitle();
+    }, FLIP_SPEED / 2);
   };
 
   const updateIndex = (increment: number) => {
-    const inc = Number(increment);
-    const newIndex = (currentIndex + inc + images.length) % images.length;
-    const isReverse = inc < 0;
-    setCurrentIndex(newIndex);
-    updateGallery(newIndex, isReverse);
+    if (displayImages.length === 0) return;
+    
+    const nextIndex = (currentIndex + increment + displayImages.length) % displayImages.length;
+    const isReverse = increment < 0;
+    updateGallery(nextIndex, isReverse);
   };
 
+  // Fallback images if no media from database
+  const fallbackImages = [
+    { 
+      title: 'Junior Center B2B Callcenter', 
+      url: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=600&h=1000&fit=crop',
+      description: '1. Projekt - Customer Service'
+    },
+    { 
+      title: 'MMO Multimediateam', 
+      url: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=600&h=1000&fit=crop',
+      description: '3. Projekt - Video & Illustration'
+    },
+    { 
+      title: 'Junior Center B2B Mediamatik', 
+      url: 'https://images.unsplash.com/photo-1561070791-2526d30994b5?w=600&h=1000&fit=crop',
+      description: '2. Projekt - Photography'
+    },
+    { 
+      title: 'Motion', 
+      url: 'https://images.unsplash.com/photo-1551650975-87deedd944c3?w=600&h=1000&fit=crop',
+      description: '4. Projekt - Motion Design'
+    },
+    { 
+      title: 'Portfolio Project', 
+      url: 'https://images.unsplash.com/photo-1512941937669-90a1b58e7e9c?w=600&h=1000&fit=crop',
+      description: 'Personal Portfolio Website'
+    }
+  ];
+
+  // Use database media if available, otherwise use fallback
+  const displayImages = mediaItems.length > 0 ? mediaItems : fallbackImages;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+        <div className="text-2xl">Loading gallery...</div>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-screen bg-black text-white font-sans overflow-hidden">
+    <div className="min-h-screen bg-black text-white font-sans">
       {/* Animated Signature */}
       <div className="absolute top-8 left-1/2 transform -translate-x-1/2 z-20">
-        <svg width="120" height="40" viewBox="0 0 120 40" className="signature-svg">
-          {/* Grey part of signature */}
+        <svg width="60" height="40" viewBox="0 0 60 40" className="mb-2">
+          {/* Background signature */}
           <path
-            d="M10 20 Q15 15 20 20"
-            stroke="#9CA3AF"
+            d="M20 20 Q25 25 30 20 Q35 15 40 20 Q45 25 50 20"
+            stroke="rgba(255,255,255,0.3)"
             strokeWidth="2"
             fill="none"
             strokeLinecap="round"
