@@ -1,5 +1,5 @@
 import { supabase } from './supabase'
-import { Experience, Media, ContactMessage, AdminProfile, AboutContent, Admin } from '@/types/database'
+import { Experience, Media, ContactMessage, AdminProfile, AboutContent, Admin, DockApp } from '@/types/database'
 
 // Experience functions
 export async function getExperiences(): Promise<Experience[]> {
@@ -285,4 +285,61 @@ export async function authenticateAdmin(email: string, password: string): Promis
   }
 
   return null
+}
+
+// Dock Apps functions
+export async function getDockApps(): Promise<DockApp[]> {
+  const { data, error } = await supabase
+    .from('dock_apps')
+    .select('*')
+    .eq('is_active', true)
+    .order('sort_order', { ascending: true })
+
+  if (error) throw error
+  return data || []
+}
+
+export async function getAllDockApps(): Promise<DockApp[]> {
+  const { data, error } = await supabase
+    .from('dock_apps')
+    .select('*')
+    .order('sort_order', { ascending: true })
+
+  if (error) throw error
+  return data || []
+}
+
+export async function createDockApp(app: Omit<DockApp, 'id' | 'created_at' | 'updated_at'>): Promise<DockApp> {
+  const { data, error } = await supabase
+    .from('dock_apps')
+    .insert(app)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function updateDockApp(id: string, updates: Partial<DockApp>): Promise<DockApp> {
+  const { data, error } = await supabase
+    .from('dock_apps')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+  return data
+}
+
+export async function deleteDockApp(id: string): Promise<void> {
+  const { error } = await supabase
+    .from('dock_apps')
+    .delete()
+    .eq('id', id)
+
+  if (error) {
+    console.error('Error deleting dock app:', error);
+    throw error;
+  }
 } 

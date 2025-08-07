@@ -35,9 +35,13 @@ import {
   getAboutContent,
   createAboutContent,
   updateAboutContent,
+  getAllDockApps,
+  createDockApp,
+  updateDockApp,
+  deleteDockApp,
   authenticateAdmin
 } from '@/lib/database';
-import { Experience, Media, ContactMessage, AdminProfile, AboutContent } from '@/types/database';
+import { Experience, Media, ContactMessage, AdminProfile, AboutContent, DockApp } from '@/types/database';
 import { supabase } from '@/lib/supabase';
 
 interface AdminDashboardProps {
@@ -45,15 +49,16 @@ interface AdminDashboardProps {
 }
 
 export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
-  const [activeTab, setActiveTab] = useState<'experiences' | 'media' | 'messages' | 'profile' | 'about' | 'settings'>('experiences');
+  const [activeTab, setActiveTab] = useState<'experiences' | 'media' | 'messages' | 'profile' | 'about' | 'settings' | 'dock'>('experiences');
   const [experiences, setExperiences] = useState<Experience[]>([]);
   const [media, setMedia] = useState<Media[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [adminProfile, setAdminProfile] = useState<AdminProfile | null>(null);
   const [aboutContent, setAboutContent] = useState<AboutContent | null>(null);
+  const [dockApps, setDockApps] = useState<DockApp[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [editingItem, setEditingItem] = useState<Experience | Media | null>(null);
+  const [editingItem, setEditingItem] = useState<Experience | Media | DockApp | null>(null);
 
   // Form states
   const [experienceForm, setExperienceForm] = useState({
@@ -91,6 +96,17 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   });
   const [isEditingSettings, setIsEditingSettings] = useState(false);
 
+  const [dockAppForm, setDockAppForm] = useState({
+    app_id: '',
+    name: '',
+    icon_url: '',
+    title: '',
+    content: '',
+    is_active: true,
+    sort_order: 0
+  });
+
+
   useEffect(() => {
     loadData();
   }, []);
@@ -98,18 +114,20 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
   const loadData = async () => {
     setLoading(true);
     try {
-      const [expData, mediaData, messagesData, profileData, aboutData] = await Promise.all([
+      const [expData, mediaData, messagesData, profileData, aboutData, dockData] = await Promise.all([
         getExperiences(),
         getMedia(),
         getContactMessages(),
         getAdminProfile(),
-        getAboutContent()
+        getAboutContent(),
+        getAllDockApps()
       ]);
       setExperiences(expData);
       setMedia(mediaData);
       setMessages(messagesData);
       setAdminProfile(profileData);
       setAboutContent(aboutData);
+      setDockApps(dockData);
       
       // Pre-fill profile form if profile exists
       if (profileData) {
@@ -178,7 +196,7 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     }
   };
 
-  const handleDelete = async (type: 'experience' | 'media' | 'message', id: string) => {
+  const handleDelete = async (type: 'experience' | 'media' | 'message' | 'dock', id: string) => {
     if (!confirm('Are you sure you want to delete this item?')) return;
 
     try {
@@ -191,6 +209,9 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
           break;
         case 'message':
           await deleteContactMessage(id);
+          break;
+        case 'dock':
+          await deleteDockApp(id);
           break;
       }
       loadData();
@@ -320,6 +341,36 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
     }
   };
 
+  const handleDockAppSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      const dockAppData = {
+        ...dockAppForm,
+        sort_order: parseInt(dockAppForm.sort_order.toString()) || 0
+      };
+      
+      if (editingItem && 'app_id' in editingItem) {
+        await updateDockApp(editingItem.id, dockAppData);
+      } else {
+        await createDockApp(dockAppData);
+      }
+      setShowForm(false);
+      setEditingItem(null);
+      setDockAppForm({
+        app_id: '',
+        name: '',
+        icon_url: '',
+        title: '',
+        content: '',
+        is_active: true,
+        sort_order: 0
+      });
+      loadData();
+    } catch (error) {
+      console.error('Error saving dock app:', error);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -409,6 +460,17 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
           >
             <Settings size={20} />
             Settings
+          </button>
+          <button
+            onClick={() => setActiveTab('dock')}
+            className={`px-4 py-2 rounded-lg flex items-center gap-2 ${
+              activeTab === 'dock' 
+                ? 'bg-[#E0F21E] text-black' 
+                : 'bg-gray-800 text-white'
+            }`}
+          >
+            <Image size={20} />
+            Dock Apps
           </button>
         </div>
 
@@ -967,6 +1029,222 @@ export default function AdminDashboard({ onLogout }: AdminDashboardProps) {
                     </div>
                   </div>
                 )}
+              </div>
+            </div>
+          )}
+
+          {activeTab === 'dock' && (
+            <div>
+              <div className="flex justify-between items-center mb-6">
+                <h2 className="text-2xl font-bold">Dock Apps</h2>
+                <button
+                  onClick={() => setShowForm(true)}
+                  className="bg-[#E0F21E] text-black px-4 py-2 rounded-lg flex items-center gap-2"
+                >
+                  <Plus size={20} />
+                  Add Dock App
+                </button>
+              </div>
+
+              {showForm && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="bg-gray-800 rounded-lg p-6 mb-6"
+                >
+                  <h3 className="text-xl font-semibold mb-4">
+                    {editingItem && 'app_id' in editingItem ? 'Edit Dock App' : 'Add New Dock App'}
+                  </h3>
+                  <form onSubmit={handleDockAppSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          App ID
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g., finder, calculator"
+                          value={dockAppForm.app_id}
+                          onChange={(e) => setDockAppForm({ ...dockAppForm, app_id: e.target.value })}
+                          className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Name
+                        </label>
+                        <input
+                          type="text"
+                          placeholder="e.g., Finder, Calculator"
+                          value={dockAppForm.name}
+                          onChange={(e) => setDockAppForm({ ...dockAppForm, name: e.target.value })}
+                          className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                          required
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Icon URL
+                      </label>
+                      <input
+                        type="url"
+                        placeholder="https://example.com/icon.png"
+                        value={dockAppForm.icon_url}
+                        onChange={(e) => setDockAppForm({ ...dockAppForm, icon_url: e.target.value })}
+                        className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Window Title
+                      </label>
+                      <input
+                        type="text"
+                        placeholder="e.g., Finder, Calculator"
+                        value={dockAppForm.title}
+                        onChange={(e) => setDockAppForm({ ...dockAppForm, title: e.target.value })}
+                        className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-300 mb-2">
+                        Content
+                      </label>
+                      <textarea
+                        placeholder="Enter the content that will be displayed in the app window..."
+                        value={dockAppForm.content}
+                        onChange={(e) => setDockAppForm({ ...dockAppForm, content: e.target.value })}
+                        className="w-full p-3 bg-gray-700 rounded-lg text-white h-32 resize-none"
+                        required
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">
+                          Sort Order
+                        </label>
+                        <input
+                          type="number"
+                          placeholder="0"
+                          value={dockAppForm.sort_order}
+                          onChange={(e) => setDockAppForm({ ...dockAppForm, sort_order: parseInt(e.target.value) || 0 })}
+                          className="w-full p-3 bg-gray-700 rounded-lg text-white"
+                          required
+                        />
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="checkbox"
+                          id="is_active"
+                          checked={dockAppForm.is_active}
+                          onChange={(e) => setDockAppForm({ ...dockAppForm, is_active: e.target.checked })}
+                          className="w-4 h-4 text-[#E0F21E] bg-gray-700 border-gray-600 rounded focus:ring-[#E0F21E] focus:ring-2"
+                        />
+                        <label htmlFor="is_active" className="text-sm font-medium text-gray-300">
+                          Active
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <button
+                        type="submit"
+                        className="bg-[#E0F21E] text-black px-6 py-2 rounded-lg"
+                      >
+                        {editingItem && 'app_id' in editingItem ? 'Update' : 'Create'} Dock App
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowForm(false);
+                          setEditingItem(null);
+                          setDockAppForm({
+                            app_id: '',
+                            name: '',
+                            icon_url: '',
+                            title: '',
+                            content: '',
+                            is_active: true,
+                            sort_order: 0
+                          });
+                        }}
+                        className="bg-gray-600 text-white px-6 py-2 rounded-lg"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </form>
+                </motion.div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {dockApps.map((app) => (
+                  <div key={app.id} className="bg-gray-800 rounded-lg p-6">
+                    <div className="flex items-center gap-3 mb-4">
+                      <img 
+                        src={app.icon_url} 
+                        alt={app.name}
+                        className="w-12 h-12 rounded-lg object-cover"
+                      />
+                      <div>
+                        <h3 className="text-lg font-semibold text-white">{app.name}</h3>
+                        <p className="text-sm text-gray-400">ID: {app.app_id}</p>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-2 mb-4">
+                      <p className="text-sm text-gray-300">
+                        <span className="font-medium">Title:</span> {app.title}
+                      </p>
+                      <p className="text-sm text-gray-300">
+                        <span className="font-medium">Sort Order:</span> {app.sort_order}
+                      </p>
+                      <p className="text-sm text-gray-300">
+                        <span className="font-medium">Status:</span> 
+                        <span className={`ml-1 ${app.is_active ? 'text-green-400' : 'text-red-400'}`}>
+                          {app.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                      </p>
+                    </div>
+
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => {
+                          setEditingItem(app);
+                          setDockAppForm({
+                            app_id: app.app_id,
+                            name: app.name,
+                            icon_url: app.icon_url,
+                            title: app.title,
+                            content: app.content,
+                            is_active: app.is_active,
+                            sort_order: app.sort_order
+                          });
+                          setShowForm(true);
+                        }}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+                      >
+                        <Edit size={16} />
+                        Edit
+                      </button>
+                      <button
+                        onClick={() => handleDelete('dock', app.id)}
+                        className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm flex items-center gap-1"
+                      >
+                        <Trash2 size={16} />
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
           )}

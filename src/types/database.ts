@@ -52,4 +52,17 @@ export interface ContactMessage {
   message: string
   created_at: string
   read: boolean
+}
+
+export interface DockApp {
+  id: string
+  app_id: string
+  name: string
+  icon_url: string
+  title: string
+  content: string
+  is_active: boolean
+  sort_order: number
+  created_at: string
+  updated_at: string
 } 
